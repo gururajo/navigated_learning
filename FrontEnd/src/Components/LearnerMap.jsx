@@ -1,5 +1,5 @@
 const LearnerMap = () => {
-  <div></div>;
+  return <div>LearnerMap</div>;
 };
 
 export default LearnerMap;

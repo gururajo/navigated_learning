@@ -5,11 +5,19 @@ import LearnerSummary from "./Components/LearnerSummary";
 
 function App() {
   return (
-    <div className="App">
-      <LearnerSummary />
-      <LearnerActivity />
-      <LearnerMap />
-    </div>
+    <>
+      <div className="row">
+        <div className="col-sm-8 learnerMap align-middle">
+          <LearnerMap />
+        </div>
+        <div className="col-sm-4 leanerActivity align-middle">
+          <LearnerActivity />
+        </div>
+      </div>
+      <div className="learnerSummary align-middle">
+        <LearnerSummary />
+      </div>
+    </>
   );
 }
 

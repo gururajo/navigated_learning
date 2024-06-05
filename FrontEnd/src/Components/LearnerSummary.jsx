@@ -1,5 +1,5 @@
 const LearnerSummary = () => {
-  <div></div>;
+  return <div>LearnerSummary</div>;
 };
 
 export default LearnerSummary;
