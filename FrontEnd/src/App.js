@@ -1,9 +1,15 @@
-
-import './App.css';
+import "./App.css";
+import LearnerActivity from "./Components/LearnerActivity";
+import LearnerMap from "./Components/LearnerMap";
+import LearnerSummary from "./Components/LearnerSummary";
 
 function App() {
   return (
-    "Hello"
+    <div className="App">
+      <LearnerSummary />
+      <LearnerActivity />
+      <LearnerMap />
+    </div>
   );
 }
 
