@@ -7,14 +7,14 @@ function App() {
   return (
     <>
       <div className="row">
-        <div className="col-sm-8 learnerMap align-middle">
+        <div className="col-sm-7 align-middle">
           <LearnerMap />
         </div>
-        <div className="col-sm-4 leanerActivity align-middle">
+        <div className="col-sm-5 align-middle">
           <LearnerActivity />
         </div>
       </div>
-      <div className="learnerSummary align-middle">
+      <div className="align-middle">
         <LearnerSummary />
       </div>
     </>
