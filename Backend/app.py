@@ -1,7 +1,10 @@
 from flask import Flask, render_template, jsonify, send_from_directory
+from flask_cors import CORS
 import pandas as pd
 
 app = Flask(__name__)
+
+CORS(app)  # Enable CORS for all routes
 
 # Read data from Excel file
 excel_file = 'DM_Resource_Plot.xlsx'

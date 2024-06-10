@@ -6,11 +6,12 @@ import LearnerSummary from "./Components/LearnerSummary";
 function App() {
   return (
     <>
+      <h1>Learning Map(Discrete Mathematics)</h1>
       <div className="row">
-        <div className="col-sm-7 align-middle">
+        <div className="col-sm-9 align-middle">
           <LearnerMap />
         </div>
-        <div className="col-sm-5 align-middle">
+        <div className="col-sm-3 align-middle">
           <LearnerActivity />
         </div>
       </div>
