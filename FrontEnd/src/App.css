@@ -1,38 +1,39 @@
 .learnerMapTitle {
 }
 .learnerMapBody {
-  min-height: 600px;
-  align-content: center;
-  border: solid Black;
-  border-width: 1px;
+	height: 650px;
+	align-content: center;
+	border: solid Black;
+	border-width: 1px;
 }
 .learnerActivityTitle {
 }
 .learnerActivityBody {
-  min-height: 600px;
-  align-content: center;
-  border: solid Black;
-  border-width: 1px;
+	overflow: scroll;
+	height: 650px;
+	align-content: center;
+	border: solid Black;
+	border-width: 1px;
 }
 .learnerSummaryTitle {
 }
 .learnerSummaryBody {
-  margin-top: 10px;
-  min-height: 300px;
-  align-content: center;
-  border: solid Black;
-  border-width: 1px;
+	margin-top: 10px;
+	height: 300px;
+	align-content: center;
+	border: solid Black;
+	border-width: 1px;
 }
 
 .summaryText {
-  height: 200px;
-  margin-left: 10px;
-  width: auto;
-  margin-right: 10px;
+	height: 200px;
+	margin-left: 10px;
+	width: auto;
+	margin-right: 10px;
 }
 
 .summarySubmitButton {
-  margin-left: 10px;
-  width: auto;
-  margin-right: 10px;
+	margin-left: 10px;
+	width: auto;
+	margin-right: 10px;
 }
