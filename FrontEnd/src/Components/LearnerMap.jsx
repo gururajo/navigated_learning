@@ -36,9 +36,9 @@ const LearnerMap = ({ activitiesState, learnerPosState }) => {
 				.selectAll("circle")
 				.data(data)
 				.enter()
-				// .append("a") // Make each point a link
-				// .attr("xlink:href", (d) => d.video_url)
-				// .attr("target", "_blank")
+				.append("a") // Make each point a link
+				.attr("xlink:href", (d) => d.video_url)
+				.attr("target", "_blank")
 				.append("circle")
 				.attr("cx", (d) => d.x * 8000 - 2800) //d.x * 1000)
 				.attr("cy", (d) => 3650 - d.y * 8000) //1000 - d.y * 1000)
