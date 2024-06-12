@@ -1,8 +1,10 @@
-import React from "react";
+import React, { useState } from "react";
 import { Button, Form, InputGroup } from "react-bootstrap";
 import { getResponseGet } from "../lib/utils";
 
-const LearnerSummary = () => {
+const LearnerSummary = ({ activitiesState, learnerPosState }) => {
+	const [count, setCount] = useState(0);
+	const [summary, setSummary] = useState("");
 	const updatePosition = async () => {
 		// const response = await getResponseGet("/new_positions");
 		// var newPositions = response?.data;
@@ -25,12 +27,32 @@ const LearnerSummary = () => {
 		// 	.translate(width / 2 - newCx, height / 2 - newCy)
 		// 	.scale(1);
 		// svg.transition().duration(750).call(zoom.transform, newTransform);
+
+		const response = await getResponseGet("/new_positions");
+		var newPositions = response?.data;
+		console.log(newPositions, count);
+		learnerPosState[1]([newPositions[count].x, newPositions[count].y]);
+		setSummary(newPositions[count].description);
+		setCount((c) => (c + 1) % 4);
+		activitiesState[1]((activities) => [
+			...activities,
+			{
+				type: "summary",
+				name: summary,
+				time: Date(),
+			},
+		]);
 	};
 	return (
 		<div className="learnerSummaryBody">
 			<InputGroup className="mb-3 summaryText">
 				<InputGroup.Text>Summary</InputGroup.Text>
-				<Form.Control as="textarea" aria-label="With textarea" />
+				<Form.Control
+					as="textarea"
+					aria-label="With textarea"
+					value={summary}
+					onChange={(e) => setSummary(e.target.value)}
+				/>
 			</InputGroup>
 			<Button
 				variant="secondary"

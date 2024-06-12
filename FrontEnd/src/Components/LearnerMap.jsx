@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { getResponseGet } from "../lib/utils";
 import * as d3 from "d3";
 
-const LearnerMap = () => {
+const LearnerMap = ({ activitiesState, learnerPosState }) => {
 	useEffect(() => {
 		loadMap();
 	}, []);
@@ -36,14 +36,27 @@ const LearnerMap = () => {
 				.selectAll("circle")
 				.data(data)
 				.enter()
-				.append("a") // Make each point a link
-				.attr("xlink:href", (d) => d.video_url)
-				.attr("target", "_blank")
+				// .append("a") // Make each point a link
+				// .attr("xlink:href", (d) => d.video_url)
+				// .attr("target", "_blank")
 				.append("circle")
 				.attr("cx", (d) => d.x * 8000 - 2800) //d.x * 1000)
 				.attr("cy", (d) => 3650 - d.y * 8000) //1000 - d.y * 1000)
 				.attr("r", 5)
 				.attr("fill", "steelblue")
+				.on("click", function (event, d) {
+					// Change color of clicked circle
+					d3.select(this).attr("fill", "orange");
+					activitiesState[1]((activities) => [
+						...activities,
+						{
+							type: "resource",
+							name: d.name,
+							link: d.video_url,
+							time: Date(),
+						},
+					]);
+				})
 				.on("mouseover", function (event, d) {
 					// Display name of the data point
 					g.append("text")
@@ -59,11 +72,12 @@ const LearnerMap = () => {
 					// Remove the name label when mouse moves out
 					g.selectAll("text").remove();
 				});
+			console.log("this is the learnerPos", learnerPosState);
 			g.append("rect")
-				.attr("x", 100) // Adjust x-coordinate
-				.attr("y", 900)
-				.attr("width", 10)
-				.attr("height", 10)
+				.attr("x", learnerPosState[0][0]) // Adjust x-coordinate
+				.attr("y", learnerPosState[0][1])
+				.attr("width", 20)
+				.attr("height", 20)
 				.attr("fill", "red")
 				.attr("id", "individual-point")
 				.on("mouseover", function (event, d) {
