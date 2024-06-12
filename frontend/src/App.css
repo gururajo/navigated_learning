@@ -1,0 +1,39 @@
+.learnerMapTitle {
+}
+.learnerMapBody {
+	height: 650px;
+	align-content: center;
+	border: solid Black;
+	border-width: 1px;
+}
+.learnerActivityTitle {
+}
+.learnerActivityBody {
+	overflow: scroll;
+	height: 650px;
+	align-content: center;
+	border: solid Black;
+	border-width: 1px;
+}
+.learnerSummaryTitle {
+}
+.learnerSummaryBody {
+	margin-top: 10px;
+	height: 300px;
+	align-content: center;
+	border: solid Black;
+	border-width: 1px;
+}
+
+.summaryText {
+	height: 200px;
+	margin-left: 10px;
+	width: auto;
+	margin-right: 10px;
+}
+
+.summarySubmitButton {
+	margin-left: 10px;
+	width: auto;
+	margin-right: 10px;
+}
