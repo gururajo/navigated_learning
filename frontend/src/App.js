@@ -6,7 +6,7 @@ import LearnerSummary from "./Components/LearnerSummary";
 
 function App() {
 	const activitiesState = useState([]);
-	const learnerPosState = useState([100, 900]);
+	const learnerPosState = useState([0.1, 0.1]);
 
 	return (
 		<>

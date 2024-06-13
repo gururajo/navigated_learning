@@ -5,19 +5,22 @@ import * as d3 from "d3";
 const LearnerMap = ({ activitiesState, learnerPosState }) => {
 	useEffect(() => {
 		loadMap();
-	}, []);
+	});
 
 	const loadMap = async () => {
 		var response = await getResponseGet("/data");
 		if (response) {
 			const data = response.data;
 			console.log(data);
-
-			const svg = d3
+			// remove the old component test test test4
+			var svg = d3.select(".learnerMapBody");
+			console.log("this is svg", svg);
+			svg.selectAll("*").remove();
+			svg = d3
 				.select(".learnerMapBody")
 				.append("svg")
-				.attr("width", 1559)
-				.attr("height", 650);
+				.attr("width", 1000)
+				.attr("height", 1000);
 
 			const g = svg.append("g");
 			console.log("this is g 1", g);
@@ -30,6 +33,15 @@ const LearnerMap = ({ activitiesState, learnerPosState }) => {
 				});
 
 			svg.call(zoom);
+
+			// g.append("rect")
+			// 	.attr("x", 0)
+			// 	.attr("y", 0)
+			// 	.attr("width", 1000) // Same as SVG width
+			// 	.attr("height", 1000) // Same as SVG height
+			// 	.attr("fill", "none")
+			// 	.attr("stroke", "black")
+			// 	.attr("stroke-width", 2);
 
 			// Bind data to circles
 			const circles = g
@@ -74,8 +86,8 @@ const LearnerMap = ({ activitiesState, learnerPosState }) => {
 				});
 			console.log("this is the learnerPos", learnerPosState);
 			g.append("rect")
-				.attr("x", learnerPosState[0][0]) // Adjust x-coordinate
-				.attr("y", learnerPosState[0][1])
+				.attr("x", learnerPosState[0][0] * 1000) // Adjust x-coordinate
+				.attr("y", 1000 - learnerPosState[0][1] * 1000)
 				.attr("width", 20)
 				.attr("height", 20)
 				.attr("fill", "red")

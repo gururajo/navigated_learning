@@ -32,6 +32,7 @@ const LearnerSummary = ({ activitiesState, learnerPosState }) => {
 		var newPositions = response?.data;
 		console.log(newPositions, count);
 		learnerPosState[1]([newPositions[count].x, newPositions[count].y]);
+		console.log("this is the new position", newPositions[count]);
 		setSummary(newPositions[count].description);
 		setCount((c) => (c + 1) % 4);
 		activitiesState[1]((activities) => [

@@ -1,6 +1,7 @@
 .learnerMapTitle {
 }
 .learnerMapBody {
+	overflow: scroll;
 	height: 650px;
 	align-content: center;
 	border: solid Black;
