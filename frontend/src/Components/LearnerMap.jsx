@@ -44,7 +44,7 @@ const SVGComponent = ({ children, width, height }) => {
 
 		const zoom = d3
 			.zoom()
-			.scaleExtent([0.1, 1])
+			.scaleExtent([0.6, 10])
 			.on("zoom", (event) => {
 				g.attr("transform", event.transform);
 			});
