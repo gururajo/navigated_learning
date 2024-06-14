@@ -6,6 +6,8 @@
 	align-content: center;
 	border: solid Black;
 	border-width: 1px;
+	width: 100%;
+	/* position: relative; */
 }
 .learnerActivityTitle {
 }
