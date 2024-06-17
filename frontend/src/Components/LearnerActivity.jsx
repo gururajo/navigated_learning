@@ -7,40 +7,36 @@ import TimelineOppositeContent from "@mui/lab/TimelineOppositeContent";
 import TimelineDot from "@mui/lab/TimelineDot";
 import MenuBookIcon from "@mui/icons-material/MenuBook";
 import PublishIcon from "@mui/icons-material/Publish";
-import HotelIcon from "@mui/icons-material/Hotel";
-import RepeatIcon from "@mui/icons-material/Repeat";
+import StarIcon from "@mui/icons-material/Star";
 import Typography from "@mui/material/Typography";
-import { useEffect } from "react";
 
 const LearnerActivity = ({ activitiesState }) => {
-	console.log("sthis is activitiesState", activitiesState[0]);
+	console.log("this is activitiesState", activitiesState[0]);
 
 	return (
 		<div className="learnerActivityBody">
 			<Timeline position="right">
-				{/* <TimelineItem>
+				<TimelineItem>
 					<TimelineOppositeContent
 						sx={{ m: "auto 0" }}
 						align="right"
 						variant="body2"
 						color="text.secondary"
 					>
-						9:30 am
+						Start
 					</TimelineOppositeContent>
 					<TimelineSeparator>
-						<TimelineConnector />
 						<TimelineDot>
-							<FastfoodIcon />
+							<StarIcon />
 						</TimelineDot>
 						<TimelineConnector />
 					</TimelineSeparator>
 					<TimelineContent sx={{ py: "12px", px: 2 }}>
 						<Typography variant="h6" component="span">
-							Eat
+							Beginning of Activities
 						</Typography>
-						<Typography>Because you need strength</Typography>
 					</TimelineContent>
-				</TimelineItem> */}
+				</TimelineItem>
 
 				{activitiesState[0].map((activity, index) => (
 					<TimelineItem key={index}>
