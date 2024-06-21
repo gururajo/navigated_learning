@@ -1,0 +1,6 @@
+Frontend:
+npm start
+
+Backend:
+flask --app app.py run OR
+python app.py

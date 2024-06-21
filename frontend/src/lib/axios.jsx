@@ -1,5 +1,5 @@
 import axios from "axios";
-export const SERVERIP = "localhost:5000";
+export const SERVERIP = "119.161.98.90:5000";
 export const baseURL = "http://" + SERVERIP;
 
 const api = axios.create({
