@@ -50,7 +50,6 @@ def create_database(mysql):
 def create_tables(mysql):
     try:
         cursor = mysql.connection.cursor()
-        cursor.execute("USE navigated_learning")
         # Add SQL statements to create tables
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS example_table (
@@ -58,6 +57,7 @@ def create_tables(mysql):
             name VARCHAR(100) NOT NULL
         )
         """)
+
         cursor.close()
         print("Tables created or already exist.")
     except Exception as e:

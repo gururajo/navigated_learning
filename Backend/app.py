@@ -1,7 +1,6 @@
 from init import app, mysql
 import pandas as pd
 from flask import jsonify
-import MySQLdb.cursors
 
 # Read data from Excel file
 excel_file = 'DM_Resource_Plot.xlsx'
