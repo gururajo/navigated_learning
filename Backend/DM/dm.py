@@ -6,6 +6,8 @@ from nltk.stem import WordNetLemmatizer, PorterStemmer
 from nltk.corpus import stopwords
 from sentence_transformers import SentenceTransformer
 import numpy as np
+from transformers import BertModel, BertTokenizer, BertForMaskedLM
+import torch
 
 
 nltk.download('stopwords')
@@ -124,10 +126,83 @@ def create_topic_polylines():
     return topic_polylines
 
 
+#
+#
+# Resources functions start
+#
+#
+
+def create_resource_embeddings(keywords):
+    model_name = 'bert-base-uncased'
+    tokenizer = BertTokenizer.from_pretrained(model_name)
+    new_model = BertModel.from_pretrained(model_name)
+
+    keybert_embeddings_list = []
+    for i in keywords:
+
+        # Tokenize the keywords and convert them into token IDs
+        tokenized_inputs = tokenizer(
+            i, padding=True, truncation=True, return_tensors="pt")
+
+        # Obtain the embeddings from the BERT model
+        with torch.no_grad():
+            outputs = new_model(**tokenized_inputs)
+
+        # Extract the embeddings corresponding to the [CLS] token
+        embeddings = outputs.last_hidden_state[:, 0, :].numpy()
+        embeddings = embeddings.tolist()
+        keybert_embeddings_list.append(embeddings)
+    return keybert_embeddings_list
+
+
+def create_resource_polylines(topicembedding, keybert_embeddings_list):
+    all_polylines = []
+    topic_embeddings = topicembedding
+    for embeddings in keybert_embeddings_list:
+        single_file_polyline = []
+        for i in range(len(embeddings)):
+            docVector = embeddings[i]
+            polyline = []
+            for j in range(len(topic_embeddings)):
+                wordVector = topic_embeddings[j]
+                # find the cosine similarity between resource embeddings and the topic embeddings
+                cos_sim = (get_cos_sim(wordVector, docVector) + 1) / 2
+                polyline.append({'x': j, 'y': cos_sim})
+            single_file_polyline.append(polyline)
+        all_polylines.append(single_file_polyline)
+    return all_polylines
+
+
+def update_polylines(all_polylines):
+    new_polylines = []
+    for single_file_polyline in all_polylines:
+        templ = []
+        for i in range(len(topicembedding)):
+            temp = 0
+            # between the multiple polylines for each doc find the highline and set that as the final polyline
+            for j in range(len(single_file_polyline)):
+                if single_file_polyline[j][i]['y'] > temp:
+                    temp = single_file_polyline[j][i]['y']
+            templ.append({'x': i, 'y': temp})
+        new_polylines.append(templ)
+    return new_polylines
+
+
 if __name__ == "__main__":
     topics = pd.read_excel(
         r'C:\MINE\temp\navigated_learning\Backend\DM\DM_topics.xlsx')
     topicembedding = create_topic_embeddings()
     topic_polylines = create_topic_polylines()
     print("Done")
+
+    resource_keylist = pd.read_excel(
+        r'C:\MINE\temp\navigated_learning\Backend\DM\DM_Resource_Keywords.xlsx')
+    resource_keylist['keywords'] = resource_keylist['description'].apply(
+        lambda x: x.split(','))
+    resource_embeddings = create_resource_embeddings(
+        resource_keylist['keywords'])
+    resource_polylines = create_resource_polylines(
+        topicembedding, resource_embeddings)
+    resource_polylines = update_polylines(resource_polylines)
+    print(resource_polylines[0])
     # breakpoint()
