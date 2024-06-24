@@ -170,10 +170,6 @@ def create_resource_polylines(topicembedding, keybert_embeddings_list):
                 polyline.append({'x': j, 'y': cos_sim})
             single_file_polyline.append(polyline)
         all_polylines.append(single_file_polyline)
-    return all_polylines
-
-
-def update_polylines(all_polylines):
     new_polylines = []
     for single_file_polyline in all_polylines:
         templ = []
@@ -203,6 +199,5 @@ if __name__ == "__main__":
         resource_keylist['keywords'])
     resource_polylines = create_resource_polylines(
         topicembedding, resource_embeddings)
-    resource_polylines = update_polylines(resource_polylines)
     print(resource_polylines[0])
     # breakpoint()
