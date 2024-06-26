@@ -6,6 +6,7 @@ from flask import Flask
 print("this should run only once")
 mysql: MySQL = None
 app: Flask = None
+DBcreated: bool = False
 
 
 def create_app():
@@ -192,7 +193,7 @@ def create_tables(mysql):
 
 
 def main():
-    global app, mysql
+    global app, mysql, DBcreated
     app, mysql = create_app()
 
     with app.app_context():
@@ -203,6 +204,7 @@ def main():
             cursor.execute("use navigated_learning")
         else:
             print("Database is not present.")
+            DBcreated = True
             create_database(mysql)
             app.config['MYSQL_DB'] = 'navigated_learning'
             cursor = mysql.connection.cursor()

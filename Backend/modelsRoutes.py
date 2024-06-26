@@ -13,8 +13,8 @@ db = flask_sqlalchemy.SQLAlchemy(app)
 
 
 class Resource(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(25))
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    name = db.Column(db.String(2048))
     description = db.Column(db.JSON)
     keywords = db.Column(db.JSON)
     polyline = db.Column(db.JSON)
@@ -24,9 +24,23 @@ class Resource(db.Model):
     type = db.Column(db.Integer)
     embedding = db.Column(db.JSON)
 
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'description': self.description,
+            'keywords': self.keywords,
+            'polyline': self.polyline,
+            'x_coordinate': self.x_coordinate,
+            'y_coordinate': self.y_coordinate,
+            'course_id': self.course_id,
+            'type': self.type,
+            'embedding': self.embedding
+        }
+
 
 class Topic(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String(250))
     description = db.Column(db.JSON)
     keywords = db.Column(db.JSON)
@@ -36,34 +50,75 @@ class Topic(db.Model):
     course_id = db.Column(db.Integer, db.ForeignKey('course.id'))
     embedding = db.Column(db.JSON)
 
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'description': self.description,
+            'keywords': self.keywords,
+            'polyline': self.polyline,
+            'x_coordinate': self.x_coordinate,
+            'y_coordinate': self.y_coordinate,
+            'course_id': self.course_id,
+            'embedding': self.embedding
+        }
+
 
 class Learner(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     registered_date = db.Column(db.DateTime, default=datetime.utcnow)
     name = db.Column(db.String(250))
     cgpa = db.Column(db.String(2))
     username = db.Column(db.String(50))
     password = db.Column(db.String(50))
 
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'registered_date': self.registered_date.isoformat() if self.registered_date else None,
+            'name': self.name,
+            'cgpa': self.cgpa,
+            'username': self.username,
+            'password': self.password
+        }
+
 
 class Course(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String(250))
     description = db.Column(db.JSON)
     resources = db.relationship('Resource', backref='course', lazy=True)
     topics = db.relationship('Topic', backref='course', lazy=True)
 
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'description': self.description,
+            'resources': [resource.to_dict() for resource in self.resources],
+            'topics': [topic.to_dict() for topic in self.topics]
+        }
+
 
 class Activity(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     time = db.Column(db.DateTime, default=datetime.utcnow)
     type_id = db.Column(db.Integer)
     enroll_id = db.Column(db.Integer, db.ForeignKey('enroll.id'))
     resource_id = db.Column(db.Integer, db.ForeignKey('resource.id'))
 
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'time': self.time.isoformat() if self.time else None,
+            'type_id': self.type_id,
+            'enroll_id': self.enroll_id,
+            'resource_id': self.resource_id
+        }
+
 
 class Enroll(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     learner_id = db.Column(db.Integer, db.ForeignKey('learner.id'))
     course_id = db.Column(db.Integer, db.ForeignKey('course.id'))
     x_coordinate = db.Column(db.Float)
@@ -72,9 +127,20 @@ class Enroll(db.Model):
     contributions = db.relationship(
         'Contribution', backref='enroll', lazy=True)
 
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'learner_id': self.learner_id,
+            'course_id': self.course_id,
+            'x_coordinate': self.x_coordinate,
+            'y_coordinate': self.y_coordinate,
+            'polyline': self.polyline,
+            'contributions': [contribution.to_dict() for contribution in self.contributions]
+        }
+
 
 class Contribution(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     enroll_id = db.Column(db.Integer, db.ForeignKey('enroll.id'))
     submitted_on = db.Column(db.DateTime, default=datetime.utcnow)
     file_path = db.Column(db.String(1024))
@@ -84,6 +150,20 @@ class Contribution(db.Model):
     x_coordinate = db.Column(db.Float)
     y_coordinate = db.Column(db.Float)
     embedding = db.Column(db.JSON)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'enroll_id': self.enroll_id,
+            'submitted_on': self.submitted_on.isoformat() if self.submitted_on else None,
+            'file_path': self.file_path,
+            'description': self.description,
+            'prev_polyline': self.prev_polyline,
+            'polyline': self.polyline,
+            'x_coordinate': self.x_coordinate,
+            'y_coordinate': self.y_coordinate,
+            'embedding': self.embedding
+        }
 
 
 # Initialize database

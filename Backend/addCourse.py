@@ -8,9 +8,11 @@ from sentence_transformers import SentenceTransformer
 import numpy as np
 from transformers import BertModel, BertTokenizer, BertForMaskedLM
 import torch
-
+from modelsRoutes import db, Resource, Course, Topic, app
+import math
 
 nltk.download('stopwords')
+nltk.download('wordnet')
 stop_words = set(stopwords.words('english'))
 
 
@@ -57,7 +59,7 @@ def apply_preprocessing(df):
     df['tokens'] = df['clean_text'].apply(lambda x: x.split())
 
 
-def create_topic_embeddings():
+def create_topic_embeddings(topics):
 
     count = 0
     model = SentenceTransformer('bert-base-nli-mean-tokens')
@@ -80,7 +82,7 @@ def get_cos_sim(a, b):
     return dot_product / (norm_a * norm_b)
 
 
-def create_topic_polylines():
+def create_topic_polylines(topics, topicembedding):
     topic_names = topics["name"].tolist()  # Topic keyphrases
     length = len(topics)
     topic_modules = []  # Topic module number
@@ -112,7 +114,7 @@ def create_topic_polylines():
                 cos_sim = (get_cos_sim(
                     (topic1_vector), (topic2_vector)) + 1) / 2
 
-            polyline.append({"x": j, "y": cos_sim})  # format 1
+            polyline.append(cos_sim)  # format 1
             # polyline.append((j, cos_sim)) #format 2
 
         topic.append(topic_names[i])
@@ -179,17 +181,177 @@ def create_resource_polylines(topicembedding, keybert_embeddings_list):
             for j in range(len(single_file_polyline)):
                 if single_file_polyline[j][i]['y'] > temp:
                     temp = single_file_polyline[j][i]['y']
-            templ.append({'x': i, 'y': temp})
+            templ.append(temp)
         new_polylines.append(templ)
     return new_polylines
 
 
-if __name__ == "__main__":
+#
+#
+#
+# learners functions
+#
+#
+#
+
+def create_embeddings_centroid_list(l):
+    new_keybert_embeddings_list = []
+    for i in l:
+        # find the centroid of the embeddings for a doc
+        index_averages = [sum(x) / len(x) for x in zip(*i)]
+        new_keybert_embeddings_list.append(index_averages)
+    return new_keybert_embeddings_list
+
+
+def rad_plot_axes(num, x_max, y_max):  # function to plot the competency axes
+    empt_arr = []  # a temporary container
+    xstop = []  # list to store x coordinate of the axes endpoints
+    ystop = []  # list to store y coordinate of the axes endpoints
+    tlen = []  # list to store the length of axes
+    ttempl = []  # a temporary container
+    theta = ((np.pi)/(num-1))/2
+    b = 0
+    while (b*theta) <= (np.arctan(y_max/x_max)):
+        empt_arr.append(x_max * math.tan(b*theta))
+        ystop.append(empt_arr[b])
+        ttemp = math.sqrt(
+            ((x_max * x_max) + (x_max * math.tan(b*theta) * x_max * math.tan(b*theta))))
+        tlen.append(ttemp)
+        if (b*theta != np.arctan(y_max/x_max)):
+            ttempl.append(ttemp)
+        b = b+1
+
+    while b < num:
+        ystop.append(y_max)
+        b = b+1
+    tlen.extend(list(reversed(ttempl)))
+    xstop = list(reversed(ystop))
+    # print(tlen)
+    # print(ystop)
+
+    for d in range(num):
+        x_values = [0, xstop[d]]
+        y_values = [0, ystop[d]]
+        # plt.plot(x_values, y_values, label=f'topic {d+1}', alpha=1, linewidth=0.2)
+    return tlen, theta
+
+# ........................................loop
+
+
+#     if p["id"].startswith("lc"):
+#       x = p["ld"]["x"]
+#       y = p["ld"]["y"]
+#       listx3.append(x)
+#       listy3.append(y)
+#   plt.scatter(listx3,listy3,color="blue")
+#   plt.xlim(-0.1, 0.5)
+#   plt.ylim(-0.1,0.5)
+#   plt.show()
+
+
+# function to plot the polyline and their centroid
+def rad_plot_poly(num, hd_point, tlen, theta):
+    k = 0  # just a looping var
+    coordinates = []
+    for pnt in hd_point:
+        new_pnt = []
+        x_values = []
+        y_values = []
+        for p in range(num):
+            new_pnt.append(pnt[p])
+            rlen = pnt[p]*tlen[p]
+            x_values.append(rlen * math.cos(p*theta))
+            y_values.append(rlen * math.sin(p*theta))
+        # plt.plot(x_values, y_values, label=f'polyline', alpha=0.6, linewidth=0.5)
+        average_x = sum(x_values)/num
+        average_y = sum(y_values)/num
+
+        l = []
+        l.append(average_x)
+        l.append(average_y)
+        coordinates.append(l)
+        k = k+1
+
+    print("Red    - Resources ")
+
+    return coordinates
+
+
+def pushTopicsToDB(topics, topicembedding, topic_polylines, course_id):
+
+    print(len(topics), len(topic_polylines), len(topicembedding))
+    feature_length = len(topic_polylines["polyline"][0])
+    (tlen, theta) = rad_plot_axes(feature_length, 1, 1)
+    centroid_list = rad_plot_poly(
+        feature_length, topic_polylines["polyline"], tlen, theta)
+    allTopics = []
+    with app.app_context():
+        for i in range(len(topics)):
+            topic = Topic(
+                name=topics["name"][i],
+                description=topics["description"][i],
+                keywords=topics["tokens"][i],
+                polyline=topic_polylines["polyline"][i],
+                x_coordinate=centroid_list[i][0],
+                y_coordinate=centroid_list[i][1],
+                course_id=course_id,
+                embedding=topicembedding[i].tolist()
+            )
+            allTopics.append(topic)
+        db.session.add_all(allTopics)
+        db.session.commit()
+    print("added topics to DB")
+
+
+def pushResourcesToDB(resources, resourceembedding, resource_polylines, course_id):
+    print(len(resources), len(resource_polylines), len(resourceembedding))
+
+    feature_length = len(resource_polylines[0])
+    (tlen, theta) = rad_plot_axes(feature_length, 1, 1)
+    centroid_list = rad_plot_poly(
+        feature_length, resource_polylines, tlen, theta)
+    allresources = []
+    with app.app_context():
+        for i in range(len(resources)):
+            new_resource = Resource(
+                name=resources["name"][i],
+                description=resources["description"][i],
+                keywords=resources['keywords'][i],
+                polyline=resource_polylines[i],
+                x_coordinate=centroid_list[i][0],
+                y_coordinate=centroid_list[i][1],
+                course_id=course_id,
+                type=1,
+                embedding=resourceembedding[i]
+            )
+            # print(new_resource.to_dict())
+            allresources.append(new_resource)
+            # db.session.add(new_resource)
+            # db.session.commit()
+        db.session.add_all(allresources)
+        db.session.commit()
+    print("added resources to the DB")
+    # breakpoint()
+
+
+def create_Course(name, description, topics: pd.DataFrame, resource_keylist: pd.DataFrame):
+    new_course = Course(
+        name=name,
+        description=description
+    )
+    with app.app_context():
+        db.session.add(new_course)
+        db.session.commit()
+        course_id = new_course.id
+        print(new_course.to_dict())
+    print("this si the new course id", course_id)
     topics = pd.read_excel(
         r'C:\MINE\temp\navigated_learning\Backend\DM\DM_topics.xlsx')
-    topicembedding = create_topic_embeddings()
-    topic_polylines = create_topic_polylines()
+    apply_preprocessing(topics)
+    topicembedding = create_topic_embeddings(topics)
+    topic_polylines = create_topic_polylines(topics, topicembedding)
     print("Done")
+    pushTopicsToDB(topics, topicembedding, topic_polylines, course_id)
 
     resource_keylist = pd.read_excel(
         r'C:\MINE\temp\navigated_learning\Backend\DM\DM_Resource_Keywords.xlsx')
@@ -200,4 +362,6 @@ if __name__ == "__main__":
     resource_polylines = create_resource_polylines(
         topicembedding, resource_embeddings)
     print(resource_polylines[0])
+    pushResourcesToDB(resource_keylist, resource_embeddings,
+                      resource_polylines, course_id)
     # breakpoint()

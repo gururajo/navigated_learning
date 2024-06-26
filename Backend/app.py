@@ -1,6 +1,7 @@
-from init import app, mysql
+from init import app, DBcreated
 import pandas as pd
-from flask import jsonify
+from flask import jsonify, request
+from addCourse import create_Course
 import modelsRoutes
 # Read data from Excel file
 excel_file = 'DM_Resource_Plot.xlsx'
@@ -14,11 +15,14 @@ scatterplot_data = df[['index', 'name', 'x',
 learner_data = df_learner[['index', 'resource_name',
                            'x', 'y', 'description']].to_dict(orient='records')
 
+if DBcreated:
+    print("creating the course")
+    create_Course("Discreate Mathematics",
+                  "this is the description of DM", None, None)
+
 
 @app.route('/data')
 def get_data():
-    cursor = mysql.connection.cursor()
-    print(dir(cursor.execute("show tables;")))
     # print(cursor, dir(cursor))
     return jsonify(scatterplot_data)
 
@@ -26,6 +30,12 @@ def get_data():
 @app.route('/new_positions')
 def get_new_data():
     return jsonify(learner_data)
+
+
+@app.route("/submitsummary", methods=['POST'])
+def get_new_postion():
+    summary = request.get_json()
+    print(summary)
 
 
 if __name__ == '__main__':
