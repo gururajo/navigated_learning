@@ -68,7 +68,7 @@ class Learner(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     registered_date = db.Column(db.DateTime, default=datetime.utcnow)
     name = db.Column(db.String(250))
-    cgpa = db.Column(db.String(2))
+    cgpa = db.Column(db.Float)
     username = db.Column(db.String(50))
     password = db.Column(db.String(50))
 

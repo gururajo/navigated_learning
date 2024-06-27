@@ -1,7 +1,7 @@
 from init import app, DBcreated
 import pandas as pd
 from flask import jsonify, request
-from addCourse import create_Course
+from addCourse import create_Course, update_position
 import modelsRoutes
 # Read data from Excel file
 excel_file = 'DM_Resource_Plot.xlsx'
@@ -34,8 +34,12 @@ def get_new_data():
 
 @app.route("/submitsummary", methods=['POST'])
 def get_new_postion():
-    summary = request.get_json()
-    print(summary)
+    data = request.get_json()
+    summary = data["summary"]
+    enrollId = data["enroll_id"]
+    courseId = data["course_id"]
+    pos = update_position(summary, enrollId, courseId)
+    return jsonify(pos), 200
 
 
 if __name__ == '__main__':

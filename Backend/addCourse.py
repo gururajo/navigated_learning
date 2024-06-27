@@ -8,8 +8,9 @@ from sentence_transformers import SentenceTransformer
 import numpy as np
 from transformers import BertModel, BertTokenizer, BertForMaskedLM
 import torch
-from modelsRoutes import db, Resource, Course, Topic, app
+from modelsRoutes import db, Resource, Course, Topic, app, Enroll, Learner
 import math
+from keybert import KeyBERT
 
 nltk.download('stopwords')
 nltk.download('wordnet')
@@ -235,21 +236,7 @@ def rad_plot_axes(num, x_max, y_max):  # function to plot the competency axes
         # plt.plot(x_values, y_values, label=f'topic {d+1}', alpha=1, linewidth=0.2)
     return tlen, theta
 
-# ........................................loop
 
-
-#     if p["id"].startswith("lc"):
-#       x = p["ld"]["x"]
-#       y = p["ld"]["y"]
-#       listx3.append(x)
-#       listy3.append(y)
-#   plt.scatter(listx3,listy3,color="blue")
-#   plt.xlim(-0.1, 0.5)
-#   plt.ylim(-0.1,0.5)
-#   plt.show()
-
-
-# function to plot the polyline and their centroid
 def rad_plot_poly(num, hd_point, tlen, theta):
     k = 0  # just a looping var
     coordinates = []
@@ -266,10 +253,7 @@ def rad_plot_poly(num, hd_point, tlen, theta):
         average_x = sum(x_values)/num
         average_y = sum(y_values)/num
 
-        l = []
-        l.append(average_x)
-        l.append(average_y)
-        coordinates.append(l)
+        coordinates.append([float(average_x), float(average_y)])
         k = k+1
 
     print("Red    - Resources ")
@@ -334,6 +318,114 @@ def pushResourcesToDB(resources, resourceembedding, resource_polylines, course_i
     # breakpoint()
 
 
+# find the keywords for all the documents and store it in a list
+def create_keywords_list(content_list):
+    kw_model = KeyBERT(model='all-mpnet-base-v2')
+    num_keywords = 10
+    all_keywords_list = []
+    all_weight_list = []
+    for i in range(len(content_list)):
+        keywords = kw_model.extract_keywords(content_list[i], keyphrase_ngram_range=(
+            1, 2), stop_words='english', highlight=False, top_n=num_keywords)
+        keywords_list = list(dict(keywords).keys())
+        cs_list = list(dict(keywords).values())
+        weight = sum(cs_list)/len(cs_list)
+        all_keywords_list.append(keywords_list)
+        all_weight_list.append(weight)
+    return all_keywords_list, all_weight_list
+
+
+# Load pre-trained BERT model and tokenizer
+def create_embeddings_list(l):
+    model_name = 'bert-base-uncased'
+    tokenizer = BertTokenizer.from_pretrained(model_name)
+    new_model = BertModel.from_pretrained(model_name)
+
+    keybert_embeddings_list = []
+    for i in l:
+
+        # Tokenize the keywords and convert them into token IDs
+        tokenized_inputs = tokenizer(
+            i, padding=True, truncation=True, return_tensors="pt")
+
+        # Obtain the embeddings from the BERT model
+        with torch.no_grad():
+            outputs = new_model(**tokenized_inputs)
+
+        # Extract the embeddings corresponding to the [CLS] token
+        embeddings = outputs.last_hidden_state[:, 0, :].numpy()
+        embeddings = embeddings.tolist()
+        keybert_embeddings_list.append(embeddings)
+    return keybert_embeddings_list
+
+
+def create_polyline(l, course_id):
+    all_polylines = []
+    embeddings = db.session.query(
+        Topic.embedding).filter_by(course_id=course_id).all()
+    topic_embeddings = embeddings
+    for keybert_embeddings in l:
+        docVector = keybert_embeddings
+        polyline = []
+        for j in range(len(topic_embeddings)):
+            wordVector = topic_embeddings[j]
+            # find cosine similarity between the learner embeddings and the topic embeddings
+            cos_sim = (get_cos_sim(wordVector, docVector) + 1) / 2
+            polyline.append(cos_sim)
+        all_polylines.append(polyline)
+    return all_polylines
+
+
+def create_polyline_highline(old, new):
+    feature_len = len(old)
+    polyline = []
+    for i in range(feature_len):
+        polyline.append(max(max(old[i]), new[i]))
+    return polyline
+
+
+def update_position(summary, enrollId, courseId):
+    print(summary, enrollId, courseId)
+    # (all_keywords_list, all_weight_list) = create_keywords_list([summary])
+    # keybert_embeddings_list = create_embeddings_list(all_keywords_list)
+    # new_keybert_embeddings_list = create_embeddings_centroid_list(
+    #     keybert_embeddings_list)
+    # all_polylines = create_polyline(new_keybert_embeddings_list, courseId)
+    # polylines = db.session.query(Enroll.polyline).filter_by(id=enrollId).all()
+    # print(polylines)
+
+    (all_keywords_list, all_weight_list) = create_keywords_list([summary])
+    learner_embeddings = create_resource_embeddings(all_keywords_list)
+    topicembedding = db.session.query(
+        Topic.embedding).filter_by(course_id=courseId).all()
+    if not topicembedding:
+        raise IndexError()
+
+    learner_polylines = create_resource_polylines(
+        topicembedding, learner_embeddings)
+    print(learner_polylines)
+    # print(centroid_list)
+    enroll: Enroll = Enroll.query.get(enrollId)
+    if not enroll:
+        raise IndexError
+    polylines = enroll.polyline
+    print(polylines)
+    new_polylines = create_polyline_highline(
+        learner_polylines[0], polylines)
+    print(new_polylines)
+
+    feature_length = len(learner_polylines[0])
+    (tlen, theta) = rad_plot_axes(feature_length, 1, 1)
+    centroid_list = rad_plot_poly(
+        feature_length, [new_polylines], tlen, theta)
+    print(centroid_list)
+    enroll.x_coordinate = centroid_list[0][0]
+    enroll.y_coordinate = centroid_list[0][1]
+    enroll.polyline = new_polylines
+    db.session.commit()
+    return centroid_list[0]
+
+
 def create_Course(name, description, topics: pd.DataFrame, resource_keylist: pd.DataFrame):
     new_course = Course(
         name=name,
@@ -341,6 +433,23 @@ def create_Course(name, description, topics: pd.DataFrame, resource_keylist: pd.
     )
     with app.app_context():
         db.session.add(new_course)
+        db.session.commit()
+        new_learner = Learner(
+            name="Gururaj",
+            cgpa=4.0,
+            username="guru",
+            password="guru"
+        )
+        db.session.add(new_learner)
+        db.session.commit()
+        new_enroll = Enroll(
+            learner_id=1,
+            course_id=1,
+            x_coordinate=0.0,
+            y_coordinate=0.0,
+            polyline=[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        )
+        db.session.add(new_enroll)
         db.session.commit()
         course_id = new_course.id
         print(new_course.to_dict())
@@ -364,4 +473,5 @@ def create_Course(name, description, topics: pd.DataFrame, resource_keylist: pd.
     print(resource_polylines[0])
     pushResourcesToDB(resource_keylist, resource_embeddings,
                       resource_polylines, course_id)
+
     # breakpoint()
