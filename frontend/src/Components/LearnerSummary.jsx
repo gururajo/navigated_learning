@@ -1,40 +1,29 @@
 import React, { useState } from "react";
 import { Button, Form, InputGroup } from "react-bootstrap";
-import { getResponseGet } from "../lib/utils";
+import { getResponseGet, getResponsePost } from "../lib/utils";
 
 const LearnerSummary = ({ activitiesState, learnerPosState }) => {
-	const [count, setCount] = useState(0);
+	const [loading, setLoading] = useState(false);
 	const [summary, setSummary] = useState("");
 	const updatePosition = async () => {
-		// const response = await getResponseGet("/new_positions");
-		// var newPositions = response?.data;
-		// // Update position of individual point based on the new data
-		// g.select("#individual-point")
-		// 	.attr("cx", newPositions[currentPositionIndex].x * 1000)
-		// 	.attr("cy", 1000 - newPositions[currentPositionIndex].y * 1000);
-		// newCx = newPositions[currentPositionIndex].x * 1000;
-		// newCy = 1000 - newPositions[currentPositionIndex].y * 1000;
-		// descriptionText.text(newPositions[currentPositionIndex].description);
-		// currentPositionIndex = (currentPositionIndex + 1) % newPositions.length;
-		// //updateMilestone(newPositions)
-		// update_summary_Milestone(buttonClickCount);
-		// // Increment the button click count
-		// buttonClickCount++;
-		// const [[x0, y0], [x1, y1]] = g.node().getBBox(); // Get the bounding box of the group element
-		// const width = svg.attr("width");
-		// const height = svg.attr("height");
-		// const newTransform = d3.zoomIdentity
-		// 	.translate(width / 2 - newCx, height / 2 - newCy)
-		// 	.scale(1);
-		// svg.transition().duration(750).call(zoom.transform, newTransform);
-
-		const response = await getResponseGet("/new_positions");
+		let data = {
+			summary: summary,
+			enroll_id: 1,
+			course_id: 1,
+		};
+		setLoading(true);
+		const response = await getResponsePost("/submitsummary", data);
+		console.log(response);
 		var newPositions = response?.data;
-		console.log(newPositions, count);
-		learnerPosState[1]([newPositions[count].x, newPositions[count].y]);
-		console.log("this is the new position", newPositions[count]);
-		setSummary(newPositions[count].description);
-		setCount((c) => (c + 1) % 4);
+		if (!newPositions) {
+			console.log(newPositions, "this the not the expected response");
+			return;
+		}
+		console.log(newPositions);
+		learnerPosState[1]([newPositions[0], newPositions[1]]);
+		console.log("this is the new position", newPositions);
+		setSummary(summary);
+		// setCount((c) => (c + 1) % 4);
 		activitiesState[1]((activities) => [
 			...activities,
 			{
@@ -43,7 +32,9 @@ const LearnerSummary = ({ activitiesState, learnerPosState }) => {
 				time: Date(),
 			},
 		]);
+		setLoading(false);
 	};
+
 	return (
 		<div className="learnerSummaryBody">
 			<InputGroup className="mb-3 summaryText">
@@ -59,6 +50,7 @@ const LearnerSummary = ({ activitiesState, learnerPosState }) => {
 				variant="secondary"
 				className="summarySubmitButton"
 				onClick={updatePosition}
+				disabled={loading}
 			>
 				Update My Position
 			</Button>
