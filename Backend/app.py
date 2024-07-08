@@ -1,7 +1,7 @@
 from init import app, DBcreated
 import pandas as pd
 from flask import jsonify, request
-from repository import create_Course, update_position
+from repository import create_Course, update_position, login
 import modelsRoutes
 # Read data from Excel file
 excel_file = 'DM_Resource_Plot.xlsx'
@@ -37,6 +37,8 @@ def login_user():
     data = request.get_json()
     username = data["username"]
     password = data["password"]
+    print(password, username)
+    return login(username, password)
 
 
 @app.route("/submitsummary", methods=['POST'])
@@ -50,4 +52,4 @@ def get_new_postion():
 
 
 if __name__ == '__main__':
-    app.run(host="0.0.0.0", debug=True, ssl_context='adhoc')
+    app.run(host="0.0.0.0", debug=True, ssl_context=('cert.pem', 'key.pem'))

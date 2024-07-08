@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Button, Form, InputGroup } from "react-bootstrap";
-import { getResponseGet, getResponsePost } from "../lib/utils";
+import { getResponsePost } from "../lib/utils";
 
 const LearnerSummary = ({ activitiesState, learnerPosState }) => {
 	const [loading, setLoading] = useState(false);

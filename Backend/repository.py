@@ -1,6 +1,6 @@
 import pandas as pd
 from modelsRoutes import db, Course, Topic, app, Enroll, Learner
-from model_library import apply_preprocessing, create_topic_embeddings, create_topic_polylines, pushResourcesToDB, pushTopicsToDB, create_resource_embeddings, create_resource_polylines
+from model_library import apply_preprocessing, create_topic_embeddings, create_topic_polylines, pushResourcesToDB, pushTopicsToDB, create_resource_embeddings, create_resource_polylines, create_keywords_list, create_polyline_highline, rad_plot_axes, rad_plot_poly
 
 
 def update_position(summary, enrollId, courseId):
@@ -94,3 +94,11 @@ def create_Course(name, description, topics: pd.DataFrame, resource_keylist: pd.
                       resource_polylines, course_id)
 
     # breakpoint()
+
+
+def login(username, password):
+    learner = Learner.query.filter_by(
+        username=username, password=password).first()
+    if not learner:
+        return {"isValid": False}
+    return {"isValid": True}
