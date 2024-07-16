@@ -1,7 +1,7 @@
 from flask import request, jsonify
 # from flask_sqlalchemy import SQLAlchemy
 import flask_sqlalchemy
-from datetime import datetime
+from datetime import datetime, timezone
 from init import app
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://otageri:784512963@localhost/navigated_learning'
@@ -66,7 +66,8 @@ class Topic(db.Model):
 
 class Learner(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    registered_date = db.Column(db.DateTime, default=datetime.utcnow)
+    registered_date = db.Column(
+        db.DateTime, default=lambda: datetime.now(timezone.utc))
     name = db.Column(db.String(250))
     cgpa = db.Column(db.Float)
     username = db.Column(db.String(50))

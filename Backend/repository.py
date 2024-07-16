@@ -101,4 +101,5 @@ def login(username, password):
         username=username, password=password).first()
     if not learner:
         return {"isValid": False}
-    return {"isValid": True}
+    print(learner, dir(learner))
+    return {"isValid": True, "username": learner.username, "id": learner.id, "cgpa": learner.cgpa, "name": learner.name}

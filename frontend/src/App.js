@@ -12,6 +12,7 @@ import "./App.css";
 import LearnerActivity from "./Components/LearnerActivity";
 import LearnerMap from "./Components/LearnerMap";
 import LearnerSummary from "./Components/LearnerSummary";
+import { Button, Dropdown, DropdownButton } from "react-bootstrap";
 
 function App() {
 	const [isLoggedIn, setIsLoggedIn] = React.useState(false); // Set to false initially for actual use
@@ -81,7 +82,12 @@ function App() {
 									<Login setIsLoggedIn={setIsLoggedIn} />
 								}
 							/>
-							<Route path="/signup" element={<Signup />} />
+							<Route
+								path="/signup"
+								element={
+									<Signup setIsLoggedIn={setIsLoggedIn} />
+								}
+							/>
 							<Route path="*" element={<Navigate to="/" />} />
 						</Routes>
 					</div>
@@ -89,7 +95,36 @@ function App() {
 				{isLoggedIn && (
 					<>
 						<div style={containerStyle}>
-							<h1>Learning Map (Discrete Mathematics)</h1>
+							<div className="row">
+								<h1 className="col">Learning Map</h1>
+								<DropdownButton
+									className="col"
+									id="dropdown-basic-button"
+									title="Dropdown button"
+								>
+									<Dropdown.Item href="#/action-1">
+										Action
+									</Dropdown.Item>
+									<Dropdown.Item href="#/action-2">
+										Another action
+									</Dropdown.Item>
+									<Dropdown.Item href="#/action-3">
+										Something else
+									</Dropdown.Item>
+								</DropdownButton>
+								<h5 className="col">
+									{localStorage.getItem("name")}
+								</h5>
+								<Button
+									className="col"
+									onClick={() => {
+										setIsLoggedIn(false);
+										localStorage.clear();
+									}}
+								>
+									Logout
+								</Button>
+							</div>
 							<div style={rowStyle}>
 								<div style={colStyleLeft}>
 									<LearnerMap
