@@ -26,6 +26,8 @@
 	align-content: center;
 	border: solid Black;
 	border-width: 1px;
+	margin-left: 10px;
+	margin-right: 10px;
 }
 
 .summaryText {
