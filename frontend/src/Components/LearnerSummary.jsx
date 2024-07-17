@@ -37,6 +37,15 @@ const LearnerSummary = ({ activitiesState, learnerPosState }) => {
 
 	return (
 		<div className="learnerSummaryBody">
+			<InputGroup className="mb-3 titleText">
+				<InputGroup.Text>Title</InputGroup.Text>
+				<Form.Control
+					as="textarea"
+					aria-label="With textarea"
+					value={summary}
+					onChange={(e) => setSummary(e.target.value)}
+				/>
+			</InputGroup>
 			<InputGroup className="mb-3 summaryText">
 				<InputGroup.Text>Summary</InputGroup.Text>
 				<Form.Control

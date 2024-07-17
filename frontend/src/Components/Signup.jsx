@@ -34,6 +34,11 @@ function Signup({ setIsLoggedIn }) {
 				"this is the data from server for signup",
 				responseData
 			);
+
+			localStorage.setItem("username", responseData.username);
+			localStorage.setItem("name", responseData.name);
+			localStorage.setItem("cgpa", responseData.cgpa);
+			localStorage.setItem("id", responseData.id);
 		}
 	};
 	return (

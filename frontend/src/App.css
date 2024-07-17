@@ -22,15 +22,22 @@
 }
 .learnerSummaryBody {
 	margin-top: 10px;
-	height: 300px;
 	align-content: center;
 	border: solid Black;
 	border-width: 1px;
 }
 
+.titleText {
+	margin-left: 10px;
+	width: auto;
+	margin-bottom: 0px;
+	margin-top: 10px;
+	margin-right: 10px;
+}
 .summaryText {
 	height: 200px;
 	margin-left: 10px;
+	margin-top: 0px;
 	width: auto;
 	margin-right: 10px;
 }

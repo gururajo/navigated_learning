@@ -29,6 +29,8 @@ function Login({ setIsLoggedIn }) {
 		if (loggedin && loggedin.isValid) {
 			localStorage.setItem("username", username);
 			localStorage.setItem("name", loggedin.name);
+			localStorage.setItem("cgpa", loggedin.cgpa);
+			localStorage.setItem("id", loggedin.id);
 			setIsLoggedIn(true);
 		} else {
 			alert("Please enter valid Credentials");
