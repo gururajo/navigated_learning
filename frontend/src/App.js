@@ -15,7 +15,7 @@ import LearnerSummary from "./Components/LearnerSummary";
 import { Button, Dropdown, DropdownButton } from "react-bootstrap";
 
 function App() {
-	const [isLoggedIn, setIsLoggedIn] = React.useState(false); // Set to false initially for actual use
+	const [isLoggedIn, setIsLoggedIn] = useState(true); // Set to false initially for actual use
 	const activitiesState = useState([]);
 	const learnerPosState = useState([0.1, 0.1]);
 
@@ -28,10 +28,35 @@ function App() {
 		boxSizing: "border-box",
 	};
 
-	const rowStyle = {
+	const headerStyle = {
 		display: "flex",
 		justifyContent: "space-between",
-		flexWrap: "wrap",
+		alignItems: "center",
+		padding: "10px 10px",
+		borderBottom: "1px solid #ccc",
+		backgroundColor: "rgb(225, 225, 225)"
+	};
+
+	const titleSectionStyle = {
+		display: "flex",
+		alignItems: "center",
+		justifyContent:"space-between",
+		width: "60%"
+	};
+
+	const dropdownSectionStyle = {
+		marginTop: "10px",
+		display: "flex",
+		flexDirection: "column",
+	};
+
+	const usernameStyle = {
+		marginLeft: "10px",
+		fontSize: "1.5rem",
+	};
+
+	const logoutStyle = {
+		marginLeft: "auto",
 	};
 
 	const colStyleLeft = {
@@ -95,28 +120,15 @@ function App() {
 				{isLoggedIn && (
 					<>
 						<div style={containerStyle}>
-							<div className="row">
-								<h1 className="col">Learning Map</h1>
-								<DropdownButton
-									className="col"
-									id="dropdown-basic-button"
-									title="Dropdown button"
-								>
-									<Dropdown.Item href="#/action-1">
-										Action
-									</Dropdown.Item>
-									<Dropdown.Item href="#/action-2">
-										Another action
-									</Dropdown.Item>
-									<Dropdown.Item href="#/action-3">
-										Something else
-									</Dropdown.Item>
-								</DropdownButton>
-								<h5 className="col">
-									{localStorage.getItem("name")}
-								</h5>
+							<div className="header" style={headerStyle}>
+								<div style={titleSectionStyle}>
+									<h1>Learning Map</h1>
+									<h5 style={usernameStyle}>
+										Welcome, {localStorage.getItem("name")} !!!!
+									</h5>
+								</div>
 								<Button
-									className="col"
+									style={logoutStyle}
 									onClick={() => {
 										setIsLoggedIn(false);
 										localStorage.clear();
@@ -125,12 +137,29 @@ function App() {
 									Logout
 								</Button>
 							</div>
-							<div style={rowStyle}>
+							<div style={{ display: "flex" }}>
+								
 								<div style={colStyleLeft}>
 									<LearnerMap
 										activitiesState={activitiesState}
 										learnerPosState={learnerPosState}
 									/>
+								</div>
+								<div style={dropdownSectionStyle}>
+									<DropdownButton
+										id="dropdown-basic-button"
+										title="Dropdown"
+									>
+										<Dropdown.Item href="#/action-1">
+											Action
+										</Dropdown.Item>
+										<Dropdown.Item href="#/action-2">
+											Another action
+										</Dropdown.Item>
+										<Dropdown.Item href="#/action-3">
+											Something else
+										</Dropdown.Item>
+									</DropdownButton>
 								</div>
 								<div style={colStyleRight}>
 									<LearnerActivity
