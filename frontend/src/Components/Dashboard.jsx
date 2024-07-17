@@ -80,7 +80,7 @@ const Dashboard = ({ setIsLoggedIn }) => {
 	};
 	useEffect(() => {
 		setCourses(learnerId);
-	});
+	}, []);
 	return (
 		<>
 			<div style={containerStyle}>
