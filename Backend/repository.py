@@ -1,6 +1,7 @@
 import pandas as pd
 from modelsRoutes import db, Course, Topic, app, Enroll, Learner
 from model_library import apply_preprocessing, create_topic_embeddings, create_topic_polylines, pushResourcesToDB, pushTopicsToDB, create_resource_embeddings, create_resource_polylines, create_keywords_list, create_polyline_highline, rad_plot_axes, rad_plot_poly
+from flask import jsonify
 
 
 def update_position(summary, enrollId, courseId):
@@ -103,3 +104,21 @@ def login(username, password):
         return {"isValid": False}
     print(learner, dir(learner))
     return {"isValid": True, "username": learner.username, "id": learner.id, "cgpa": learner.cgpa, "name": learner.name}
+
+
+def learner_course_enrolled(id):
+    learner = Learner.query.get(id)
+    if not learner:
+        return jsonify({"error": "Learner not found"}), 404
+
+    enrolled_courses = []
+    for enrollment in learner.enrollments:
+        course = Course.query.get(enrollment.course_id)
+        if course:
+            enrolled_courses.append({
+                'course_id': course.id,
+                'course_name': course.name,
+                'course_description': course.description
+            })
+
+    return jsonify(enrolled_courses)

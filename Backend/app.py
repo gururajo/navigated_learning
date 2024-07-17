@@ -1,7 +1,7 @@
 from init import app, DBcreated
 import pandas as pd
 from flask import jsonify, request
-from repository import create_Course, update_position, login
+from repository import create_Course, update_position, login, learner_course_enrolled
 import modelsRoutes
 # Read data from Excel file
 excel_file = 'DM_Resource_Plot.xlsx'
@@ -39,6 +39,11 @@ def login_user():
     password = data["password"]
     print(password, username)
     return login(username, password)
+
+
+@app.route("/enrolledCourses/<int:id>", methods=['GET'])
+def get_enrolled_course(id):
+    return learner_course_enrolled(id)
 
 
 @app.route("/submitsummary", methods=['POST'])

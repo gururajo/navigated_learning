@@ -72,6 +72,7 @@ class Learner(db.Model):
     cgpa = db.Column(db.Float)
     username = db.Column(db.String(50))
     password = db.Column(db.String(50))
+    enrollments = db.relationship('Enroll', backref='learner', lazy=True)
 
     def to_dict(self):
         return {

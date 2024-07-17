@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
 	BrowserRouter as Router,
 	Routes,
@@ -13,11 +13,26 @@ import LearnerActivity from "./Components/LearnerActivity";
 import LearnerMap from "./Components/LearnerMap";
 import LearnerSummary from "./Components/LearnerSummary";
 import { Button, Dropdown, DropdownButton } from "react-bootstrap";
+import { getResponseGet } from "./lib/utils";
 
 function App() {
 	const [isLoggedIn, setIsLoggedIn] = useState(false); // Set to false initially for actual use
 	const activitiesState = useState([]);
 	const learnerPosState = useState([0.1, 0.1]);
+	const [enrolledCourses, setEnrolledCourses] = useState([]);
+	const learnerId = localStorage.getItem("id");
+	const setCourses = async (learnerId) => {
+		const response = await getResponseGet(`enrolledCourses/${learnerId}`);
+		if (response?.data) {
+			console.log("Enrolled courses", response.data);
+			setEnrolledCourses(response.data);
+		} else {
+			console.error("Failed to fetch enrolled courses", response);
+		}
+	};
+	useEffect(() => {
+		setCourses(learnerId);
+	}, []);
 
 	const containerStyle = {
 		width: "100%",
@@ -145,20 +160,26 @@ function App() {
 									/>
 								</div>
 								<div style={dropdownSectionStyle}>
-									<DropdownButton
-										id="dropdown-basic-button"
-										title="Dropdown"
-									>
-										<Dropdown.Item href="#/action-1">
-											Action
-										</Dropdown.Item>
-										<Dropdown.Item href="#/action-2">
-											Another action
-										</Dropdown.Item>
-										<Dropdown.Item href="#/action-3">
-											Something else
-										</Dropdown.Item>
-									</DropdownButton>
+									{enrolledCourses && (
+										<DropdownButton
+											id="dropdown-basic-button"
+											title="Enrolled Courses"
+										>
+											{enrolledCourses.map((course) => (
+												<Dropdown.Item
+													key={course.course_id}
+													href={`#/${course.course_id}`}
+												>
+													<i class="fa fa-book"></i>
+													{"  " + course.course_name}
+												</Dropdown.Item>
+											))}
+											<Dropdown.Item key="Enroll new Course">
+												<i class="fa fa-plus-square"></i>
+												{"  Enroll New Course "}
+											</Dropdown.Item>
+										</DropdownButton>
+									)}
 								</div>
 								<div style={colStyleRight}>
 									<LearnerActivity
