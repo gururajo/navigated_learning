@@ -15,7 +15,7 @@ import LearnerSummary from "./Components/LearnerSummary";
 import { Button, Dropdown, DropdownButton } from "react-bootstrap";
 
 function App() {
-	const [isLoggedIn, setIsLoggedIn] = useState(true); // Set to false initially for actual use
+	const [isLoggedIn, setIsLoggedIn] = useState(false); // Set to false initially for actual use
 	const activitiesState = useState([]);
 	const learnerPosState = useState([0.1, 0.1]);
 
@@ -34,14 +34,14 @@ function App() {
 		alignItems: "center",
 		padding: "10px 10px",
 		borderBottom: "1px solid #ccc",
-		backgroundColor: "rgb(225, 225, 225)"
+		backgroundColor: "rgb(225, 225, 225)",
 	};
 
 	const titleSectionStyle = {
 		display: "flex",
 		alignItems: "center",
-		justifyContent:"space-between",
-		width: "60%"
+		justifyContent: "space-between",
+		width: "60%",
 	};
 
 	const dropdownSectionStyle = {
@@ -80,7 +80,7 @@ function App() {
 	return (
 		<Router>
 			<div className="app">
-				{!isLoggedIn && (
+				{!isLoggedIn ? (
 					<div className="auth-card">
 						<div className="auth-nav">
 							<NavLink
@@ -116,15 +116,15 @@ function App() {
 							<Route path="*" element={<Navigate to="/" />} />
 						</Routes>
 					</div>
-				)}
-				{isLoggedIn && (
+				) : (
 					<>
 						<div style={containerStyle}>
 							<div className="header" style={headerStyle}>
 								<div style={titleSectionStyle}>
-									<h1>Learning Map</h1>
+									<h1>Navigated Learning </h1>
 									<h5 style={usernameStyle}>
-										Welcome, {localStorage.getItem("name")} !!!!
+										Welcome, {localStorage.getItem("name")}{" "}
+										!!!!
 									</h5>
 								</div>
 								<Button
@@ -138,7 +138,6 @@ function App() {
 								</Button>
 							</div>
 							<div style={{ display: "flex" }}>
-								
 								<div style={colStyleLeft}>
 									<LearnerMap
 										activitiesState={activitiesState}
