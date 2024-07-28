@@ -1,6 +1,6 @@
 import pandas as pd
 from modelsRoutes import db, Course, Topic, app, Enroll, Learner
-from model_library import apply_preprocessing, create_topic_embeddings, create_topic_polylines, pushResourcesToDB, pushTopicsToDB, create_resource_embeddings, create_resource_polylines, create_keywords_list, create_polyline_highline, rad_plot_axes, rad_plot_poly
+from model_library import apply_preprocessing, create_topic_embeddings, create_topic_polylines, pushResourcesToDB, push_topics_to_db, create_resource_embeddings, create_resource_polylines, create_keywords_list, create_polyline_highline, rad_plot_axes, rad_plot_poly
 from flask import jsonify
 
 
@@ -80,7 +80,7 @@ def create_Course(name, description, topics: pd.DataFrame, resource_keylist: pd.
     topicembedding = create_topic_embeddings(topics)
     topic_polylines = create_topic_polylines(topics, topicembedding)
     print("Done")
-    pushTopicsToDB(topics, topicembedding, topic_polylines, course_id)
+    push_topics_to_db(topics, topicembedding, topic_polylines, course_id)
 
     resource_keylist = pd.read_excel(
         r'C:\MINE\temp\navigated_learning\Backend\DM\DM_Resource_Keywords.xlsx')
@@ -93,7 +93,10 @@ def create_Course(name, description, topics: pd.DataFrame, resource_keylist: pd.
     print(resource_polylines[0])
     pushResourcesToDB(resource_keylist, resource_embeddings,
                       resource_polylines, course_id)
-
+    # new_polylines = []
+    # for single_file in all_polylines:
+    #     temp = [ max([single_file[i][j]['y'] for j in range(len(single_file[i]))]) for i in range(len(single_file))]
+    #     new_polylines.append(temp)
     # breakpoint()
 
 

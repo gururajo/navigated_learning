@@ -17,7 +17,19 @@ nltk.download('wordnet')
 stop_words = set(stopwords.words('english'))
 
 
-def utils_preprocess_text(text, flg_stemm=False, flg_lemm=True, lst_stopwords=None):
+def utils_preprocess_text(text: str, flg_stemm: bool = False, flg_lemm: bool = True, lst_stopwords: list = None) -> str:
+    """
+    Preprocess text by removing HTML tags, punctuations, numbers, stopwords, and applying stemming/lemmatization.
+
+    Parameters:
+        text (str): The text to preprocess.
+        flg_stemm (bool): Flag to apply stemming. Default is False.
+        flg_lemm (bool): Flag to apply lemmatization. Default is True.
+        lst_stopwords (list): List of stopwords to remove. Default is None.
+
+    Returns:
+        str: The preprocessed text.
+    """
 
     # Remove HTML
     soup = BeautifulSoup(text, 'lxml')
@@ -29,23 +41,23 @@ def utils_preprocess_text(text, flg_stemm=False, flg_lemm=True, lst_stopwords=No
     # Single character removal
     text = re.sub(r"\s+[a-zA-Z]\s+", ' ', text)
 
-    # Removing multiple spaces
+    # Remove multiple spaces
     text = re.sub(r'\s+', ' ', text)
 
-    # Tokenize (convert from string to list)
+    # Tokenize text
     lst_text = text.split()
 
-    # remove Stopwords
+    # Remove stopwords
     if lst_stopwords is not None:
         lst_text = [word for word in lst_text if word not in lst_stopwords]
 
-    # Stemming (remove -ing, -ly, ...)
-    if flg_stemm == True:
+    # Apply stemming
+    if flg_stemm:
         ps = PorterStemmer()
         lst_text = [ps.stem(word) for word in lst_text]
 
-    # Lemmatisation (convert the word into root word)
-    if flg_lemm == True:
+    # Apply lemmatization
+    if flg_lemm:
         lem = WordNetLemmatizer()
         lst_text = [lem.lemmatize(word) for word in lst_text]
 
@@ -53,78 +65,94 @@ def utils_preprocess_text(text, flg_stemm=False, flg_lemm=True, lst_stopwords=No
     return text
 
 
-def apply_preprocessing(df):
+def apply_preprocessing(df: pd.DataFrame):
+    """
+    Apply text preprocessing to the 'description' column of the DataFrame.
+
+    Parameters:
+        df (pd.DataFrame): DataFrame containing topics.
+    """
+    stop_words = set(stopwords.words('english'))  # Define stopwords
     df['clean_text'] = df['description'].apply(lambda x: x.lower())
-    df['clean_text'] = df["clean_text"].apply(lambda x: utils_preprocess_text(
+    df['clean_text'] = df['clean_text'].apply(lambda x: utils_preprocess_text(
         x, flg_stemm=False, flg_lemm=True, lst_stopwords=stop_words))
     df['tokens'] = df['clean_text'].apply(lambda x: x.split())
 
 
-def create_topic_embeddings(topics):
+def create_topic_embeddings(topics: pd.DataFrame) -> list:
+    """
+    Create embeddings for each topic using a pre-trained BERT model.
 
-    count = 0
+    Parameters:
+        topics (pd.DataFrame): DataFrame containing topics.
+
+    Returns:
+        list: List of topic embeddings.
+    """
     model = SentenceTransformer('bert-base-nli-mean-tokens')
-    topicembedding = []
+    topic_embeddings = []
 
     for i in range(len(topics)):
-        embedding2 = model.encode(
+        embedding = model.encode(
             topics.loc[i, "description"], convert_to_tensor=True)
-        topicembedding.append(embedding2.cpu())
-    return topicembedding
+        # Store embeddings as numpy arrays
+        topic_embeddings.append(embedding.cpu().numpy())
+
+    return topic_embeddings
 
 
-def get_cos_sim(a, b):
-    """Takes 2 vectors a, b and returns the cosine similarity according
-    to the definition of the dot product"""
+def get_cos_sim(a: np.ndarray, b: np.ndarray) -> float:
+    """
+    Calculate the cosine similarity between two vectors.
 
+    Parameters:
+        a (np.ndarray): First vector.
+        b (np.ndarray): Second vector.
+
+    Returns:
+        float: Cosine similarity between the two vectors.
+    """
     dot_product = np.dot(a, b)
     norm_a = np.linalg.norm(a)
     norm_b = np.linalg.norm(b)
     return dot_product / (norm_a * norm_b)
 
 
-def create_topic_polylines(topics, topicembedding):
-    topic_names = topics["name"].tolist()  # Topic keyphrases
-    length = len(topics)
-    topic_modules = []  # Topic module number
-    for i in range(12):
-        topic_modules.append(1)
-    for i in range(8):
-        topic_modules.append(2)
-    nowl = len(topic_modules)
-    for i in range(length-nowl):
-        topic_modules.append(3)
-    # Topic embedding - mean of topic embeddings of individual words of a keyphrase
-    topic_embeddings = topicembedding
-    top_poly = []
-    top_module = []
-    topic = []
+def create_topic_polylines(topics: pd.DataFrame, topic_embeddings: list) -> pd.DataFrame:
+    """
+    Create a DataFrame containing topic names, module numbers, and cosine similarity polylines.
 
-    # Going through each topic and computing the cosine similarity between it's embedding and all other topic's embeddings
+    Parameters:
+        topics (pd.DataFrame): DataFrame containing topics.
+        topic_embeddings (list): List of topic embeddings.
+
+    Returns:
+        pd.DataFrame: DataFrame with topic polylines.
+    """
+    topic_names = topics["name"].tolist()
+    length = len(topics)
+
+    # Assign module numbers
+    topic_modules = [1] * 12 + [2] * 8 + [3] * (length - 20)
+
+    topic = []
+    top_poly = []
+
     for i in range(len(topic_names)):
         polyline = []
         for j in range(len(topic_names)):
-            cos_sim = 0
-            if topic_names[i] == topic_names[j]:
-                cos_sim = 1
-            else:
-                topic1_vector = topic_embeddings[i]
-                topic2_vector = topic_embeddings[j]
-
-                # scaling cosine similarity value from [-1,1] to [0,1]
-                cos_sim = (get_cos_sim(
-                    (topic1_vector), (topic2_vector)) + 1) / 2
-
-            polyline.append(cos_sim)  # format 1
-            # polyline.append((j, cos_sim)) #format 2
+            cos_sim = 1 if topic_names[i] == topic_names[j] else (
+                get_cos_sim(topic_embeddings[i], topic_embeddings[j]) + 1) / 2
+            polyline.append(cos_sim)
 
         topic.append(topic_names[i])
-        top_module.append(topic_modules[i])
         top_poly.append(polyline)
 
-    polyline_dict = {"topic": topic,
-                     "module": top_module, "polyline": top_poly}
-    # converting the topic polyline to a dataframe
+    polyline_dict = {
+        "topic": topic,
+        "polyline": top_poly
+    }
+
     topic_polylines = pd.DataFrame(polyline_dict)
     return topic_polylines
 
@@ -158,6 +186,21 @@ def create_resource_embeddings(keywords):
     return keybert_embeddings_list
 
 
+def create_polyline_highline2(l, topicembedding):
+    new_polylines = []
+    for single_file_polyline in l:
+        templ = []
+        for i in range(len(topicembedding)):
+            temp = 0
+            # between the multiple polylines for each doc find the highline and set that as the final polyline
+            for j in range(len(single_file_polyline)):
+                if single_file_polyline[j][i]['y'] > temp:
+                    temp = single_file_polyline[j][i]['y']
+            templ.append({'x': i, 'y': temp})
+        new_polylines.append(templ)
+    return new_polylines
+
+
 def create_resource_polylines(topicembedding, keybert_embeddings_list):
     all_polylines = []
     topic_embeddings = topicembedding
@@ -174,6 +217,7 @@ def create_resource_polylines(topicembedding, keybert_embeddings_list):
             single_file_polyline.append(polyline)
         all_polylines.append(single_file_polyline)
     new_polylines = []
+
     for single_file_polyline in all_polylines:
         templ = []
         for i in range(len(topicembedding)):
@@ -182,8 +226,41 @@ def create_resource_polylines(topicembedding, keybert_embeddings_list):
             for j in range(len(single_file_polyline)):
                 if single_file_polyline[j][i]['y'] > temp:
                     temp = single_file_polyline[j][i]['y']
-            templ.append(temp)
+            templ.append({'x': i, 'y': temp})
         new_polylines.append(templ)
+    polylines = []
+
+    temporary_list = []
+    learning_objects = []
+    for i in range(len(new_polylines)):
+        polyline = new_polylines[i]
+        pol = {}
+        temporary_dict = {}
+        for j in range(len(polyline)):
+            pol[j] = polyline[j]['y']
+        hd1 = np.array([v for v in pol.values()])
+        hd1.tolist()
+        temporary_dict["polyline"] = hd1
+        temporary_dict["ID"] = "r"
+        learning_objects.append(temporary_dict)
+        temporary_list.append(hd1)
+    polylines.extend(temporary_list)
+
+    beta = 10  # beta funtion to get more variance when plotting the polyline
+    polyline2 = polylines.copy()
+    beta_polylines = []
+    for line in polyline2:
+        v2 = []
+        mean_val = np.average(line)
+        len_arr = len(line)
+        for j in line:
+            j = j + beta*(j - mean_val)
+            if j > 1:
+                j = 1
+            if j < 0:
+                j = 0
+            v2.append(j)
+        beta_polylines.append(v2)
     return new_polylines
 
 
@@ -204,71 +281,112 @@ def create_embeddings_centroid_list(l):
     return new_keybert_embeddings_list
 
 
-def rad_plot_axes(num, x_max, y_max):  # function to plot the competency axes
-    empt_arr = []  # a temporary container
-    xstop = []  # list to store x coordinate of the axes endpoints
-    ystop = []  # list to store y coordinate of the axes endpoints
-    tlen = []  # list to store the length of axes
-    ttempl = []  # a temporary container
-    theta = ((np.pi)/(num-1))/2
+def rad_plot_axes(num: int, x_max: float, y_max: float):
+    """
+    Generate radial plot axes.
+
+    Parameters:
+        num (int): Number of axes.
+        x_max (float): Maximum x-coordinate.
+        y_max (float): Maximum y-coordinate.
+
+    Returns:
+        tuple: A tuple containing the lengths of the axes and the angle theta.
+    """
+    empt_arr = []  # Temporary container for y-coordinate calculations
+    xstop = []  # List to store x-coordinate of the axes endpoints
+    ystop = []  # List to store y-coordinate of the axes endpoints
+    tlen = []  # List to store the length of axes
+    ttempl = []  # Temporary container for reversed lengths
+    theta = ((np.pi) / (num - 1)) / 2  # Calculate theta
     b = 0
-    while (b*theta) <= (np.arctan(y_max/x_max)):
-        empt_arr.append(x_max * math.tan(b*theta))
-        ystop.append(empt_arr[b])
-        ttemp = math.sqrt(
-            ((x_max * x_max) + (x_max * math.tan(b*theta) * x_max * math.tan(b*theta))))
+
+    while (b * theta) <= (np.arctan(y_max / x_max)):
+        y_val = x_max * math.tan(b * theta)
+        empt_arr.append(y_val)
+        ystop.append(y_val)
+        ttemp = math.sqrt((x_max ** 2) + (y_val ** 2))
         tlen.append(ttemp)
-        if (b*theta != np.arctan(y_max/x_max)):
+        if (b * theta) != np.arctan(y_max / x_max):
             ttempl.append(ttemp)
-        b = b+1
+        b += 1
 
     while b < num:
         ystop.append(y_max)
-        b = b+1
+        b += 1
+
     tlen.extend(list(reversed(ttempl)))
     xstop = list(reversed(ystop))
-    # print(tlen)
-    # print(ystop)
 
-    for d in range(num):
-        x_values = [0, xstop[d]]
-        y_values = [0, ystop[d]]
-        # plt.plot(x_values, y_values, label=f'topic {d+1}', alpha=1, linewidth=0.2)
+    # Plotting is commented out for modularity; can be enabled as needed
+    # for d in range(num):
+    #     x_values = [0, xstop[d]]
+    #     y_values = [0, ystop[d]]
+    #     plt.plot(x_values, y_values, label=f'Axis {d+1}', alpha=1, linewidth=0.2)
+
     return tlen, theta
 
 
-def rad_plot_poly(num, hd_point, tlen, theta):
-    k = 0  # just a looping var
+def rad_plot_poly(num: int, hd_point: list, tlen: list, theta: float) -> list:
+    """
+    Plot the polyline and calculate their centroids.
+
+    Parameters:
+        num (int): Number of points.
+        hd_point (list): List of polyline points.
+        tlen (list): Length of the axes.
+        theta (float): Angle theta.
+
+    Returns:
+        list: List of centroid coordinates.
+    """
     coordinates = []
+
     for pnt in hd_point:
-        new_pnt = []
         x_values = []
         y_values = []
         for p in range(num):
-            new_pnt.append(pnt[p])
-            rlen = pnt[p]*tlen[p]
-            x_values.append(rlen * math.cos(p*theta))
-            y_values.append(rlen * math.sin(p*theta))
-        # plt.plot(x_values, y_values, label=f'polyline', alpha=0.6, linewidth=0.5)
-        average_x = sum(x_values)/num
-        average_y = sum(y_values)/num
+            rlen = pnt[p] * tlen[p]
+            x_values.append(rlen * math.cos(p * theta))
+            y_values.append(rlen * math.sin(p * theta))
 
-        coordinates.append([float(average_x), float(average_y)])
-        k = k+1
+        # Plotting is commented out for modularity; can be enabled as needed
+        # plt.plot(x_values, y_values, label='Polyline', alpha=0.6, linewidth=0.5)
 
+        average_x = sum(x_values) / num
+        average_y = sum(y_values) / num
+        coordinates.append([average_x, average_y])
+
+    # Print statement for debugging
     print("Red    - Resources ")
 
     return coordinates
 
 
-def pushTopicsToDB(topics, topicembedding, topic_polylines, course_id):
+def push_topics_to_db(topics: pd.DataFrame, topic_embeddings: list, topic_polylines: pd.DataFrame, course_id: str):
+    """
+    Push topics, their embeddings, and polylines to the database.
 
-    print(len(topics), len(topic_polylines), len(topicembedding))
+    Parameters:
+        topics (pd.DataFrame): DataFrame containing topics.
+        topic_embeddings (list): List of topic embeddings.
+        topic_polylines (pd.DataFrame): DataFrame with topic polylines.
+        course_id (str): Unique identifier for the course.
+    """
+    # Print the lengths of topics, polylines, and embeddings for debugging
+    print(len(topics), len(topic_polylines), len(topic_embeddings))
+
+    # Determine the feature length from the polyline data
     feature_length = len(topic_polylines["polyline"][0])
-    (tlen, theta) = rad_plot_axes(feature_length, 1, 1)
+
+    # Generate radial plot axes and plot polylines to get centroid coordinates
+    tlen, theta = rad_plot_axes(feature_length, 1, 1)
     centroid_list = rad_plot_poly(
         feature_length, topic_polylines["polyline"], tlen, theta)
-    allTopics = []
+
+    # List to hold all topic objects
+    all_topics = []
+
     with app.app_context():
         for i in range(len(topics)):
             topic = Topic(
@@ -279,12 +397,15 @@ def pushTopicsToDB(topics, topicembedding, topic_polylines, course_id):
                 x_coordinate=centroid_list[i][0],
                 y_coordinate=centroid_list[i][1],
                 course_id=course_id,
-                embedding=topicembedding[i].tolist()
+                embedding=topic_embeddings[i].tolist()
             )
-            allTopics.append(topic)
-        db.session.add_all(allTopics)
+            all_topics.append(topic)
+
+        # Add all topics to the session and commit to the database
+        db.session.add_all(all_topics)
         db.session.commit()
-    print("added topics to DB")
+
+    print("Added topics to DB")
 
 
 def pushResourcesToDB(resources, resourceembedding, resource_polylines, course_id):
