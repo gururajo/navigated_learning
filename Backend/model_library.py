@@ -11,6 +11,7 @@ import torch
 from modelsRoutes import db, Resource, Course, Topic, app, Enroll, Learner
 import math
 from keybert import KeyBERT
+from utils import get_cos_sim
 
 nltk.download('stopwords')
 nltk.download('wordnet')
@@ -101,23 +102,6 @@ def create_topic_embeddings(topics: pd.DataFrame) -> list:
     return topic_embeddings
 
 
-def get_cos_sim(a: np.ndarray, b: np.ndarray) -> float:
-    """
-    Calculate the cosine similarity between two vectors.
-
-    Parameters:
-        a (np.ndarray): First vector.
-        b (np.ndarray): Second vector.
-
-    Returns:
-        float: Cosine similarity between the two vectors.
-    """
-    dot_product = np.dot(a, b)
-    norm_a = np.linalg.norm(a)
-    norm_b = np.linalg.norm(b)
-    return dot_product / (norm_a * norm_b)
-
-
 def create_topic_polylines(topics: pd.DataFrame, topic_embeddings: list) -> pd.DataFrame:
     """
     Create a DataFrame containing topic names, module numbers, and cosine similarity polylines.
@@ -201,21 +185,6 @@ def create_resource_embeddings(keywords):
         embeddings = embeddings.tolist()
         keybert_embeddings_list.append(embeddings)
     return keybert_embeddings_list
-
-
-def create_polyline_highline2(l, topicembedding):
-    new_polylines = []
-    for single_file_polyline in l:
-        templ = []
-        for i in range(len(topicembedding)):
-            temp = 0
-            # between the multiple polylines for each doc find the highline and set that as the final polyline
-            for j in range(len(single_file_polyline)):
-                if single_file_polyline[j][i]['y'] > temp:
-                    temp = single_file_polyline[j][i]['y']
-            templ.append({'x': i, 'y': temp})
-        new_polylines.append(templ)
-    return new_polylines
 
 
 def create_resource_polylines(topicembedding, keybert_embeddings_list):
@@ -514,11 +483,3 @@ def create_polyline(l, course_id):
             polyline.append(cos_sim)
         all_polylines.append(polyline)
     return all_polylines
-
-
-def create_polyline_highline(old, new):
-    feature_len = len(old)
-    polyline = []
-    for i in range(feature_len):
-        polyline.append(max(max(old[i]), new[i]))
-    return polyline

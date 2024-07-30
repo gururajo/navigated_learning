@@ -1,7 +1,8 @@
 import pandas as pd
 from modelsRoutes import db, Course, Topic, app, Enroll, Learner
-from model_library import apply_preprocessing, create_topic_embeddings, create_topic_polylines, pushResourcesToDB, push_topics_to_db, create_resource_embeddings, create_resource_polylines, create_keywords_list, create_polyline_highline, rad_plot_axes, rad_plot_poly
+from model_library import apply_preprocessing, create_topic_embeddings, create_topic_polylines, pushResourcesToDB, push_topics_to_db, create_resource_embeddings, create_resource_polylines, create_keywords_list, rad_plot_axes, rad_plot_poly
 from flask import jsonify
+from utils import get_highline_of_polylines
 
 
 def update_position(summary, enrollId, courseId):
@@ -30,8 +31,8 @@ def update_position(summary, enrollId, courseId):
         raise IndexError
     polylines = enroll.polyline
     print(polylines)
-    new_polylines = create_polyline_highline(
-        learner_polylines[0], polylines)
+    new_polylines = get_highline_of_polylines(
+        [learner_polylines[0], polylines])
     print(new_polylines)
 
     feature_length = len(learner_polylines[0])

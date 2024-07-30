@@ -68,7 +68,13 @@ const GroupComponent = ({ children }) => {
 };
 
 // Circle component
-const CircleComponent = ({ data, activitiesState, tooltipRef, learnerPos, coverageRadius }) => {
+const CircleComponent = ({
+	data,
+	activitiesState,
+	tooltipRef,
+	learnerPos,
+	coverageRadius,
+}) => {
 	const handleMouseOver = (event) => {
 		const tooltip = d3.select(tooltipRef.current);
 		tooltip
@@ -103,13 +109,17 @@ const CircleComponent = ({ data, activitiesState, tooltipRef, learnerPos, covera
 
 	const distance = Math.sqrt(
 		Math.pow(data.x * 8000 - 2800 - learnerPos[0] * 1000, 2) +
-		Math.pow(3650 - data.y * 8000 - (1000 - learnerPos[1] * 1000), 2)
+			Math.pow(3650 - data.y * 8000 - (1000 - learnerPos[1] * 1000), 2)
 	);
 
 	const isWithinCoverage = distance <= coverageRadius;
 
 	return (
-		<a href={isWithinCoverage ? data.video_url : "#"} target={isWithinCoverage ? "_blank" : ""} rel="noopener noreferrer">
+		<a
+			href={isWithinCoverage ? data.video_url : "#"}
+			target={isWithinCoverage ? "_blank" : ""}
+			rel="noopener noreferrer"
+		>
 			<circle
 				cx={data.x * 8000 - 2800}
 				cy={3650 - data.y * 8000}
@@ -178,10 +188,35 @@ const LearnerPositionComponent = ({ learnerPosState, coverageRadius }) => {
 				strokeDasharray="10,10"
 			/>
 			<defs>
-				<radialGradient id="gradient" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
-					<stop offset="0%" style={{ stopColor: "rgba(0, 0, 255, 0)", stopOpacity: 0.6 }} />
-					<stop offset="50%" style={{ stopColor: "rgba(0, 50, 255, 0.6)", stopOpacity: 0.8 }} />
-					<stop offset="100%" style={{ stopColor: "rgba(0, 100, 255, 0.8)", stopOpacity: 1 }} />
+				<radialGradient
+					id="gradient"
+					cx="50%"
+					cy="50%"
+					r="50%"
+					fx="50%"
+					fy="50%"
+				>
+					<stop
+						offset="0%"
+						style={{
+							stopColor: "rgba(0, 0, 255, 0)",
+							stopOpacity: 0.6,
+						}}
+					/>
+					<stop
+						offset="50%"
+						style={{
+							stopColor: "rgba(0, 50, 255, 0.6)",
+							stopOpacity: 0.8,
+						}}
+					/>
+					<stop
+						offset="100%"
+						style={{
+							stopColor: "rgba(0, 100, 255, 0.8)",
+							stopOpacity: 1,
+						}}
+					/>
 				</radialGradient>
 			</defs>
 		</>
@@ -196,27 +231,25 @@ const LearnerMap = ({ activitiesState, learnerPosState }) => {
 	const tooltipRef = useRef(null);
 	const [coverageRadius] = useState(300); // Define the coverage radius (adjust as needed)
 
+	const loadMap = async () => {
+		const response = await getResponseGet("/data");
+		if (response) {
+			setData(response.data);
+		}
+	};
 	useEffect(() => {
-		const loadMap = async () => {
-			const response = await getResponseGet("/data");
-			if (response) {
-				setData(response.data);
-			}
-		};
-
 		loadMap();
 	}, []);
 
+	const updateDimensions = () => {
+		if (mapRef.current) {
+			setDimensions({
+				width: mapRef.current.offsetWidth,
+				height: mapRef.current.offsetHeight,
+			});
+		}
+	};
 	useEffect(() => {
-		const updateDimensions = () => {
-			if (mapRef.current) {
-				setDimensions({
-					width: mapRef.current.offsetWidth,
-					height: mapRef.current.offsetHeight,
-				});
-			}
-		};
-
 		updateDimensions();
 		window.addEventListener("resize", updateDimensions);
 		return () => {
@@ -227,7 +260,11 @@ const LearnerMap = ({ activitiesState, learnerPosState }) => {
 	const learnerPos = learnerPosState[0];
 
 	return (
-		<div className="learnerMapBody" ref={mapRef} style={{ position: "relative" }}>
+		<div
+			className="learnerMapBody"
+			ref={mapRef}
+			style={{ position: "relative" }}
+		>
 			<SVGComponent width={dimensions.width} height={dimensions.height}>
 				<GroupComponent>
 					{data.map((d) => (
@@ -270,7 +307,7 @@ const LearnerMap = ({ activitiesState, learnerPosState }) => {
 					visibility: "hidden",
 					transition: "opacity 0.2s ease",
 					fontSize: "12px",
-					zIndex: 10
+					zIndex: 10,
 				}}
 			/>
 		</div>
