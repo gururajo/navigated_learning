@@ -84,10 +84,9 @@ def create_Course(name, description, topics: pd.DataFrame, resource_keylist: pd.
 
     resource_keylist = pd.read_excel(
         r'C:\MINE\temp\navigated_learning\Backend\DM\DM_Resource_Keywords.xlsx')
-    resource_keylist['keywords'] = resource_keylist['description'].apply(
-        lambda x: x.split(','))
+    apply_preprocessing(resource_keylist)
     resource_embeddings = create_resource_embeddings(
-        resource_keylist['keywords'])
+        resource_keylist['tokens'])
     resource_polylines = create_resource_polylines(
         topicembedding, resource_embeddings)
     print(resource_polylines[0])

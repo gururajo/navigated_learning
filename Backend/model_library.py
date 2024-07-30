@@ -129,30 +129,47 @@ def create_topic_polylines(topics: pd.DataFrame, topic_embeddings: list) -> pd.D
     Returns:
         pd.DataFrame: DataFrame with topic polylines.
     """
-    topic_names = topics["name"].tolist()
+    topic_names = topics["name"].tolist()  # Topic keyphrases
     length = len(topics)
+    topic_modules = []  # Topic module number
+    for i in range(12):
+        topic_modules.append(1)
+    for i in range(8):
+        topic_modules.append(2)
+    nowl = len(topic_modules)
+    for i in range(length-nowl):
+        topic_modules.append(3)
+    # Topic embedding - mean of topic embeddings of individual words of a keyphrase
 
-    # Assign module numbers
-    topic_modules = [1] * 12 + [2] * 8 + [3] * (length - 20)
-
-    topic = []
     top_poly = []
+    top_module = []
+    topic = []
 
+    # Going through each topic and computing the cosine similarity between it's embedding and all other topic's embeddings
     for i in range(len(topic_names)):
-        polyline = []
+        polyline = [0]*len(topic_names)
         for j in range(len(topic_names)):
-            cos_sim = 1 if topic_names[i] == topic_names[j] else (
-                get_cos_sim(topic_embeddings[i], topic_embeddings[j]) + 1) / 2
-            polyline.append(cos_sim)
+            cos_sim = 0
+            if topic_names[i] == topic_names[j]:
+                cos_sim = 1
+            else:
+                topic1_vector = topic_embeddings[i]
+                topic2_vector = topic_embeddings[j]
+
+                # scaling cosine similarity value from [-1,1] to [0,1]
+                cos_sim = (get_cos_sim(
+                    (topic1_vector), (topic2_vector)) + 1) / 2
+
+            polyline[j] = cos_sim  # format 1
+            # polyline.append((j, cos_sim)) #format 2
 
         topic.append(topic_names[i])
+        top_module.append(topic_modules[i])
         top_poly.append(polyline)
 
-    polyline_dict = {
-        "topic": topic,
-        "polyline": top_poly
-    }
-
+    polyline_dict = {"topic": topic,
+                     "module": top_module, "polyline": top_poly}
+    # converting the topic polyline to a dataframe
     topic_polylines = pd.DataFrame(polyline_dict)
     return topic_polylines
 
@@ -219,17 +236,17 @@ def create_resource_polylines(topicembedding, keybert_embeddings_list):
     new_polylines = []
 
     for single_file_polyline in all_polylines:
-        templ = []
+        templ = [0]*len(topicembedding)
         for i in range(len(topicembedding)):
             temp = 0
             # between the multiple polylines for each doc find the highline and set that as the final polyline
             for j in range(len(single_file_polyline)):
                 if single_file_polyline[j][i]['y'] > temp:
                     temp = single_file_polyline[j][i]['y']
-            templ.append({'x': i, 'y': temp})
+            templ[i] = temp
         new_polylines.append(templ)
-    polylines = []
 
+    polylines = []
     temporary_list = []
     learning_objects = []
     for i in range(len(new_polylines)):
@@ -237,7 +254,7 @@ def create_resource_polylines(topicembedding, keybert_embeddings_list):
         pol = {}
         temporary_dict = {}
         for j in range(len(polyline)):
-            pol[j] = polyline[j]['y']
+            pol[j] = polyline[j]
         hd1 = np.array([v for v in pol.values()])
         hd1.tolist()
         temporary_dict["polyline"] = hd1
@@ -261,7 +278,8 @@ def create_resource_polylines(topicembedding, keybert_embeddings_list):
                 j = 0
             v2.append(j)
         beta_polylines.append(v2)
-    return new_polylines
+
+    return beta_polylines
 
 
 #
@@ -421,13 +439,14 @@ def pushResourcesToDB(resources, resourceembedding, resource_polylines, course_i
             new_resource = Resource(
                 name=resources["name"][i],
                 description=resources["description"][i],
-                keywords=resources['keywords'][i],
+                keywords=resources['tokens'][i],
                 polyline=resource_polylines[i],
                 x_coordinate=centroid_list[i][0],
                 y_coordinate=centroid_list[i][1],
                 course_id=course_id,
                 type=1,
-                embedding=resourceembedding[i]
+                embedding=resourceembedding[i],
+                link=resources['links'][i]
             )
             # print(new_resource.to_dict())
             allresources.append(new_resource)

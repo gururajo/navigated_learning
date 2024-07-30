@@ -7,7 +7,7 @@ from init import app
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://otageri:784512963@localhost/navigated_learning'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-db = flask_sqlalchemy.SQLAlchemy(app)
+db:  flask_sqlalchemy.SQLAlchemy = flask_sqlalchemy.SQLAlchemy(app)
 
 # Models
 
@@ -22,6 +22,7 @@ class Resource(db.Model):
     y_coordinate = db.Column(db.Float)
     course_id = db.Column(db.Integer, db.ForeignKey('course.id'))
     type = db.Column(db.Integer)
+    link = db.Column(db.String(2046))
     embedding = db.Column(db.JSON)
 
     def to_dict(self):
@@ -35,7 +36,8 @@ class Resource(db.Model):
             'y_coordinate': self.y_coordinate,
             'course_id': self.course_id,
             'type': self.type,
-            'embedding': self.embedding
+            'embedding': self.embedding,
+            'link': self.link
         }
 
 
