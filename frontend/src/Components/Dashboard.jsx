@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import * as d3 from "d3";
+import { useEffect, useRef, useState } from "react";
 import LearnerActivity from "./LearnerActivity";
 import LearnerMap from "./LearnerMap";
 import LearnerSummary from "./LearnerSummary";
@@ -67,8 +68,12 @@ const Dashboard = ({ setIsLoggedIn }) => {
 	const activitiesState = useState([]);
 	const learnerPosState = useState([0.1, 0.1]);
 	const learnerId = localStorage.getItem("id");
-
+	var resetMap = [false];
 	const [enrolledCourses, setEnrolledCourses] = useState([]);
+
+	const svgRef = useRef(null);
+	const zoomRef = useRef(null);
+
 	const setCourses = async (learnerId) => {
 		const response = await getResponseGet(`enrolledCourses/${learnerId}`);
 		if (response?.data) {
@@ -106,6 +111,8 @@ const Dashboard = ({ setIsLoggedIn }) => {
 						<LearnerMap
 							activitiesState={activitiesState}
 							learnerPosState={learnerPosState}
+							svgRef={svgRef}
+							zoomRef={zoomRef}
 						/>
 					</div>
 					<div style={dropdownSectionStyle}>
@@ -129,7 +136,21 @@ const Dashboard = ({ setIsLoggedIn }) => {
 								</Dropdown.Item>
 							</DropdownButton>
 						)}
+						<br />
+
+						<Button
+							onClick={() => {
+								const svg = d3.select(svgRef.current);
+								svg.transition().duration(750).call(
+									zoomRef.current.transform,
+									d3.zoomIdentity // Reset to the default transform
+								);
+							}}
+						>
+							ReCentre
+						</Button>
 					</div>
+
 					<div style={colStyleRight}>
 						<LearnerActivity activitiesState={activitiesState} />
 					</div>

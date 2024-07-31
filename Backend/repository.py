@@ -43,7 +43,7 @@ def update_position(summary, enrollId, courseId):
     enroll.x_coordinate = centroid_list[0][0]
     enroll.y_coordinate = centroid_list[0][1]
     enroll.polyline = new_polylines
-    db.session.commit()
+    # db.session.commit()
     return centroid_list[0]
 
 

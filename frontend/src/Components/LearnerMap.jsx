@@ -35,9 +35,7 @@ const GridComponent = ({ width, height, step }) => {
 };
 
 // SVG component with zoom
-const SVGComponent = ({ children, width, height }) => {
-	const svgRef = useRef(null);
-
+const SVGComponent = ({ children, width, height, svgRef, zoomRef }) => {
 	useEffect(() => {
 		const svg = d3.select(svgRef.current);
 		const g = svg.select("g");
@@ -48,8 +46,9 @@ const SVGComponent = ({ children, width, height }) => {
 			.on("zoom", (event) => {
 				g.attr("transform", event.transform);
 			});
-
+		console.log("this si the zoom factor", zoom);
 		svg.call(zoom);
+		zoomRef.current = zoom;
 	}, []);
 
 	return (
@@ -224,21 +223,22 @@ const LearnerPositionComponent = ({ learnerPosState, coverageRadius }) => {
 };
 
 // Main LearnerMap component
-const LearnerMap = ({ activitiesState, learnerPosState }) => {
+const LearnerMap = ({ activitiesState, learnerPosState, svgRef, zoomRef }) => {
 	const [data, setData] = useState([]);
 	const mapRef = useRef(null);
 	const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
 	const tooltipRef = useRef(null);
 	const [coverageRadius] = useState(300); // Define the coverage radius (adjust as needed)
 
-	const loadMap = async () => {
+	const loadData = async () => {
 		const response = await getResponseGet("/data");
 		if (response) {
 			setData(response.data);
+			console.log("this is the data", data);
 		}
 	};
 	useEffect(() => {
-		loadMap();
+		loadData();
 	}, []);
 
 	const updateDimensions = () => {
@@ -265,7 +265,12 @@ const LearnerMap = ({ activitiesState, learnerPosState }) => {
 			ref={mapRef}
 			style={{ position: "relative" }}
 		>
-			<SVGComponent width={dimensions.width} height={dimensions.height}>
+			<SVGComponent
+				width={dimensions.width}
+				height={dimensions.height}
+				svgRef={svgRef}
+				zoomRef={zoomRef}
+			>
 				<GroupComponent>
 					{data.map((d) => (
 						<React.Fragment key={d.index}>
@@ -294,6 +299,7 @@ const LearnerMap = ({ activitiesState, learnerPosState }) => {
 					/>
 				</GroupComponent>
 			</SVGComponent>
+
 			<div
 				ref={tooltipRef}
 				style={{

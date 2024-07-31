@@ -2,6 +2,7 @@ from flask import request, jsonify
 # from flask_sqlalchemy import SQLAlchemy
 import flask_sqlalchemy
 from datetime import datetime, timezone
+from sqlalchemy import Numeric
 from init import app
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://otageri:784512963@localhost/navigated_learning'
@@ -18,8 +19,8 @@ class Resource(db.Model):
     description = db.Column(db.JSON)
     keywords = db.Column(db.JSON)
     polyline = db.Column(db.JSON)
-    x_coordinate = db.Column(db.Float)
-    y_coordinate = db.Column(db.Float)
+    x_coordinate = db.Column(Numeric(20, 10))
+    y_coordinate = db.Column(Numeric(20, 10))
     course_id = db.Column(db.Integer, db.ForeignKey('course.id'))
     type = db.Column(db.Integer)
     link = db.Column(db.String(2046))
@@ -47,8 +48,8 @@ class Topic(db.Model):
     description = db.Column(db.JSON)
     keywords = db.Column(db.JSON)
     polyline = db.Column(db.JSON)
-    x_coordinate = db.Column(db.Float)
-    y_coordinate = db.Column(db.Float)
+    x_coordinate = db.Column(Numeric(20, 10))
+    y_coordinate = db.Column(Numeric(20, 10))
     course_id = db.Column(db.Integer, db.ForeignKey('course.id'))
     embedding = db.Column(db.JSON)
 
@@ -71,7 +72,7 @@ class Learner(db.Model):
     registered_date = db.Column(
         db.DateTime, default=lambda: datetime.now(timezone.utc))
     name = db.Column(db.String(250))
-    cgpa = db.Column(db.Float)
+    cgpa = db.Column(Numeric(20, 10))
     username = db.Column(db.String(50))
     password = db.Column(db.String(50))
     enrollments = db.relationship('Enroll', backref='learner', lazy=True)
@@ -125,8 +126,8 @@ class Enroll(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     learner_id = db.Column(db.Integer, db.ForeignKey('learner.id'))
     course_id = db.Column(db.Integer, db.ForeignKey('course.id'))
-    x_coordinate = db.Column(db.Float)
-    y_coordinate = db.Column(db.Float)
+    x_coordinate = db.Column(Numeric(20, 10))
+    y_coordinate = db.Column(Numeric(20, 10))
     polyline = db.Column(db.JSON)
     contributions = db.relationship(
         'Contribution', backref='enroll', lazy=True)
@@ -151,8 +152,8 @@ class Contribution(db.Model):
     description = db.Column(db.JSON)
     prev_polyline = db.Column(db.JSON)
     polyline = db.Column(db.JSON)
-    x_coordinate = db.Column(db.Float)
-    y_coordinate = db.Column(db.Float)
+    x_coordinate = db.Column(Numeric(20, 10))
+    y_coordinate = db.Column(Numeric(20, 10))
     embedding = db.Column(db.JSON)
 
     def to_dict(self):

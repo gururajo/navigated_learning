@@ -232,7 +232,7 @@ def create_resource_polylines(topicembedding, keybert_embeddings_list):
         temporary_list.append(hd1)
     polylines.extend(temporary_list)
 
-    beta = 10  # beta funtion to get more variance when plotting the polyline
+    beta = 8  # beta funtion to get more variance when plotting the polyline
     polyline2 = polylines.copy()
     beta_polylines = []
     for line in polyline2:
@@ -250,7 +250,6 @@ def create_resource_polylines(topicembedding, keybert_embeddings_list):
 
     return beta_polylines
 
-
 #
 #
 #
@@ -258,6 +257,7 @@ def create_resource_polylines(topicembedding, keybert_embeddings_list):
 #
 #
 #
+
 
 def create_embeddings_centroid_list(l):
     new_keybert_embeddings_list = []
